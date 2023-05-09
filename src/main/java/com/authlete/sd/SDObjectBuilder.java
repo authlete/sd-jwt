@@ -34,32 +34,33 @@ import java.util.Map;
  * </p>
  *
  * <blockquote>
- * <pre>
+ * <pre style="border:1px solid black; padding:1em;">
  * Disclosure disclosure = Disclosure.parse(
- *     "WyI2cU1RdlJMNWhhaiIsICJmYW1pbHlfbmFtZSIsICJNw7ZiaXVzIl0");
+ *     <span style="color:brown;">"WyI2cU1RdlJMNWhhaiIsICJmYW1pbHlfbmFtZSIsICJNw7ZiaXVzIl0"</span>);
  *
- * // Create an SDObjectBuilder instance with the default hash algorithm "sha-256".
+ * <span style="color:darkgreen;">// Create an SDObjectBuilder instance with the default
+ * // hash algorithm "sha-256".</span>
  * SDObjectBuilder builder = new SDObjectBuilder();
  *
- * // Add the digest of the disclosure.
+ * <span style="color:darkgreen;">// Add the digest of the disclosure.</span>
  * builder.putSDClaim(disclosure);
  *
- * // Add an arbitrary claim.
- * String claimName  = "my_claim_name";
- * String claimValue = "my_claim_value";
+ * <span style="color:darkgreen;">// Add an arbitrary claim.</span>
+ * String claimName  = <span style="color:brown;">"my_claim_name"</span>;
+ * String claimValue = <span style="color:brown;">"my_claim_value"</span>;
  * builder.putClaim(claimName, claimValue);
  *
- * // Build a map that represents a JSON object.
+ * <span style="color:darkgreen;">// Build a map that represents a JSON object.</span>
  * Map<String, Object> map = builder.build(true);
  *
- * // map ->
+ * <span style="color:darkgreen;">// map ->
  * // {
  * //   "my_claim_name": "my_claim_value",
  * //   "_sd": [
  * //     "uutlBuYeMDyjLLTpf6Jxi7yNkEF35jdyWMn9U7b_RYY"
  * //   ],
  * //   "_sd_alg": "sha-256"
- * // }
+ * // }</span>
  * </pre>
  * </blockquote>
  *
@@ -252,6 +253,75 @@ public class SDObjectBuilder
     public Disclosure putSDClaim(String salt, String claimName, Object claimValue)
     {
         return putSDClaim(new Disclosure(salt, claimName, claimValue));
+    }
+
+
+    /**
+     * Put the digest value of a selectively-disclosable claim.
+     *
+     * <p>
+     * This method is an alias of {@link #putSDClaim(Disclosure)
+     * putSDClaim}{@code (new }{@link Disclosure#Disclosure(String, int, Object)
+     * Disclosure}{@code (claimName, claimIndex, claimValue))}.
+     * </p>
+     *
+     * @param claimName
+     *         A claim name (an array name). Must not be null.
+     *
+     * @param claimIndex
+     *         A claim index (an array index).
+     *
+     * @param claimValue
+     *         A claim value. May be null.
+     *
+     * @return
+     *         A {@link Disclosure} instance that was created for the
+     *         specified claim.
+     *
+     * @throws IllegalArgumentException
+     *         The given claim name is null.
+     *
+     * @since 1.1
+     */
+    public Disclosure putSDClaim(String claimName, int claimIndex, Object claimValue)
+    {
+        return putSDClaim(new Disclosure(claimName, claimIndex, claimValue));
+    }
+
+
+    /**
+     * Put the digest value of a selectively-disclosable claim.
+     *
+     * <p>
+     * This method is an alias of {@link #putSDClaim(Disclosure)
+     * putSDClaim}{@code (new }{@link Disclosure#Disclosure(String, String, int, Object)
+     * Disclosure}{@code (salt, claimName, claimIndex, claimValue))}.
+     * </p>
+     *
+     * @param salt
+     *         A salt. Must not be null.
+     *
+     * @param claimName
+     *         A claim name (an array name). Must not be null.
+     *
+     * @param claimIndex
+     *         A claim index (an array index).
+     *
+     * @param claimValue
+     *         A claim value. May be null.
+     *
+     * @return
+     *         A {@link Disclosure} instance that was created for the
+     *         specified claim.
+     *
+     * @throws IllegalArgumentException
+     *         The given salt and/or claim name are null.
+     *
+     * @since 1.1
+     */
+    public Disclosure putSDClaim(String salt, String claimName, int claimIndex, Object claimValue)
+    {
+        return putSDClaim(new Disclosure(salt, claimName, claimIndex, claimValue));
     }
 
 

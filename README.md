@@ -191,6 +191,34 @@ String digestSha256 = disclosure.digest();
 String digestSha512 = disclosure.digest("sha-512");
 ```
 
+### Disclosure for Array Element
+
+When there is an array like below,
+
+```json
+{
+  "array": [ "element0", "element1" ]
+}
+```
+
+a Disclosure for the whole array can be created as follows.
+
+```java
+// Code Snippet 6: Disclosure for the whole array.
+List<String> array = List.of("element0", "element1");
+Disclosure disclosure = new Disclosure("array", array);
+```
+
+On the other hand, a disclosure can be created for each array element if
+you wish. In this case, a Disclosure consists of a salt, an array name,
+an array index, and an array element value.
+
+```java
+// Code Snippet 7: Disclosures for array elements.
+Disclosure disclosure0 = new Disclosure("array", 0, "element0");
+Disclosure disclosure1 = new Disclosure("array", 1, "element1");
+```
+
 ### Selective Disclosure Object
 
 The `SDObjectBuilder` class in this library is a utility class to create a
@@ -205,7 +233,7 @@ A typical flow of using the `SDObjectBuilder` class is as follows.
 4. Call the `build()` method to create a `Map` instance.
 
 ```java
-// Code Snippet 6: Usage of SDObjectBuilder
+// Code Snippet 8: Usage of SDObjectBuilder
 
 // Create an SDObjectBuilder instance.
 SDObjectBuilder builder = new SDObjectBuilder();
@@ -239,7 +267,7 @@ using the 1-argument constructor of the `SDObjectBuilder` class. The no-argument
 constructor uses "`sha-256`" as the hash algorithm.
 
 ```java
-// Code Snippet 7: Specifying a hash algorithm for SDObjectBuilder to use
+// Code Snippet 9: Specifying a hash algorithm for SDObjectBuilder to use
 
 // Create an SDObjectBuilder instance with a hash algorithm.
 SDObjectBuilder builder = new SDObjectBuilder("sha-512");
@@ -249,7 +277,7 @@ The name of the hash algorithm can be embedded in the `Map` instance by calling
 the 1-argument variant of the `build` method with `true`.
 
 ```java
-// Code Snippet 8: Including the name of the hash algorithm
+// Code Snippet 10: Including the name of the hash algorithm
 
 // Create a Map instance with the name of the hash algorithm included.
 Map<String, Object> map = builder.build(true);
@@ -273,6 +301,8 @@ as listed below.
 
 - `putSDClaim(String claimName, Object claimValue)`
 - `putSDClaim(String salt, String claimName, Object claimValue)`
+- `putSDClaim(String claimName, int claimIndex, Object claimValue)`
+- `putSDClaim(String salt, String claimName, int claimIndex, Object claimValue)`
 
 They are aliases of `putSDClaim(Disclosure)`, meaning that they internally
 create a `Disclosure` instance and then call the `putSDClaim(Disclosure)`
@@ -292,7 +322,7 @@ decoy digest and the `putDecoyDigests(int)` method that adds the specified
 number of decoy digests.
 
 ```java
-// Code Snippet 9: Decoy digests
+// Code Snippet 11: Decoy digests
 
 // Add a decoy digest.
 builder.putDecoyDigest();
@@ -317,7 +347,7 @@ The following is an example of generating an SD-JWT using the
 "[Nimbus JOSE + JWT][NIMBUS_JOSE_JWT]" library.
 
 ```java
-// Code Snippet 10: SD-JWT generation
+// Code Snippet 12: SD-JWT generation
 
 import java.util.*;
 import com.authlete.sd.*;
@@ -422,7 +452,7 @@ make a Disclosure for each nested claim.
 The following example generates one Disclosure for the `address` claim.
 
 ```java
-// Code Snippet 11: Disclosure per enveloping claim
+// Code Snippet 13: Disclosure per enveloping claim
 
 // Prepare a Map instance that represents the value of the "address" claim.
 Map<String, Object> address = new HashMap<>();
@@ -453,7 +483,7 @@ On the other hand, the following example generates a Disclosure for each nested
 claim under the `address` claim.
 
 ```java
-// Code Snippet 12: Disclosure per nested claim
+// Code Snippet 14: Disclosure per nested claim
 
 // Prepare a Map instance that represents the value of the "address" claim.
 // A digest is created for each claim. As a result, the "_sd" array will
@@ -524,7 +554,7 @@ The constructor of the `SDIssuance` class takes two arguments. One is an SD-JWT
 and the other is a collection of Disclosures.
 
 ```java
-// Code Snippet 13: SDIssuance's constructor
+// Code Snippet 15: SDIssuance's constructor
 
 // The 2-argument constructor of the SDIssuance class
 public SDIssuance(String sdJwt, Collection<Disclosure> disclosures)
@@ -535,7 +565,7 @@ The `SDPresentation` class has a 3-argument constructor in addition to a
 binding JWT.
 
 ```java
-// Code Snippet 14: SDPresentation's 3-argument constructor
+// Code Snippet 16: SDPresentation's 3-argument constructor
 
 // The 3-argument constructor of the SDPresentation class
 public SDPresentation(
@@ -550,7 +580,7 @@ of either the `SDIssuance` class or the `SDPresentation` class.
 The following code shows usage of methods of the `SDCombinedFormat` class.
 
 ```java
-// Code Snippet 15: Usage of SDCombinedFormat methods
+// Code Snippet 17: Usage of SDCombinedFormat methods
 
 // SD-JWT
 String sdJwt =

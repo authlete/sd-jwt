@@ -61,4 +61,23 @@ public final class DisclosureTest
         assertEquals(claimValue, disclosure.getClaimValue());
         assertEquals(input,      disclosure.getDisclosure());
     }
+
+
+    @Test
+    public void test_03_array()
+    {
+        String claimName  = "my_array";
+        int    claimIndex = 10;
+        String claimValue = "my_array_element_at_index_10";
+
+        // Disclosure that represents an array element.
+        Disclosure disclosure1 = new Disclosure(claimName, claimIndex, claimValue);
+        String disclosure1Str  = disclosure1.getDisclosure();
+
+        Disclosure disclosure2 = Disclosure.parse(disclosure1Str);
+
+        assertEquals(claimName,  disclosure2.getClaimName());
+        assertEquals(claimIndex, disclosure2.getClaimIndex());
+        assertEquals(claimValue, disclosure2.getClaimValue());
+    }
 }

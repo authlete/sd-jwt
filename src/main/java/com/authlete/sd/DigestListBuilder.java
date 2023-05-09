@@ -21,13 +21,12 @@ import static com.authlete.sd.SDUtility.computeDigest;
 import static com.authlete.sd.SDUtility.generateRandomBytes;
 import static com.authlete.sd.SDUtility.toBase64url;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 
 /**
@@ -38,6 +37,7 @@ final class DigestListBuilder
 {
     private final String hashAlgorithm;
     private final Map<String, String> claimNameToDigestMap;
+    private final Map<String, Map<Integer, String>> claimNameToIndexDigestMap;
     private final Set<String> decoyDigestSet;
 
 
@@ -62,8 +62,9 @@ final class DigestListBuilder
         this.hashAlgorithm = (hashAlgorithm != null)
                 ? hashAlgorithm : DEFAULT_HASH_ALGORITHM;
 
-        this.claimNameToDigestMap = new HashMap<>();
-        this.decoyDigestSet       = new HashSet<>();
+        this.claimNameToDigestMap      = new HashMap<>();
+        this.claimNameToIndexDigestMap = new HashMap<>();
+        this.decoyDigestSet            = new HashSet<>();
     }
 
 
@@ -98,8 +99,30 @@ final class DigestListBuilder
     {
         String claimName = disclosure.getClaimName();
         String digest    = disclosure.digest(getHashAlgorithm());
+        int    index     = disclosure.getClaimIndex();
 
-        claimNameToDigestMap.put(claimName, digest);
+        // [ salt, claimName, claimValue ]
+        if (index < 0)
+        {
+            claimNameToDigestMap.put(claimName, digest);
+            claimNameToIndexDigestMap.remove(claimName);
+
+            return digest;
+        }
+
+        // [ salt, [ claimName, claimIndex ], claimValue ]
+
+        claimNameToDigestMap.remove(claimName);
+
+        Map<Integer, String> indexDigestMap = claimNameToIndexDigestMap.get(claimName);
+
+        if (indexDigestMap == null)
+        {
+            indexDigestMap = new HashMap<>();
+            claimNameToIndexDigestMap.put(claimName, indexDigestMap);
+        }
+
+        indexDigestMap.put(index, digest);
 
         return digest;
     }
@@ -159,10 +182,18 @@ final class DigestListBuilder
      */
     public List<String> build()
     {
-        // Stream of disclosure digests and decoy digests.
-        Stream<String> digests = Stream.concat(
-                claimNameToDigestMap.values().stream(),
-                decoyDigestSet.stream());
+        List<String> digests = new ArrayList<>();
+
+        // Digests of [ salt, claimName, claimValue ]
+        digests.addAll(claimNameToDigestMap.values());
+
+        // Digests of [ salt, [ claimName, claimIndex ], claimValue ]
+        claimNameToIndexDigestMap.values().forEach(
+                indexDigestMap -> digests.addAll(indexDigestMap.values()));
+
+        // Decoy digests
+        digests.addAll(decoyDigestSet);
+
 
         // From the SD-JWT specification:
         //
@@ -172,19 +203,16 @@ final class DigestListBuilder
         //   method does not matter as long as it does not depend on the
         //   original order of elements.
         //
-        return digests.sorted().collect(Collectors.toList());
+        Collections.sort(digests);
+
+        return digests;
     }
 
 
-    String getDigestByClaimName(String claimName)
+    void removeDigestByClaimName(String claimName)
     {
-        return claimNameToDigestMap.get(claimName);
-    }
-
-
-    String removeDigestByClaimName(String claimName)
-    {
-        return claimNameToDigestMap.remove(claimName);
+        claimNameToDigestMap.remove(claimName);
+        claimNameToIndexDigestMap.remove(claimName);
     }
 
 

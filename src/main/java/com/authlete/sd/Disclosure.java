@@ -42,19 +42,21 @@ import java.util.Objects;
  * </p>
  *
  * <blockquote>
- * <pre>
- * // Parameters for the constructor.
- * String salt       = "_26bc4LT-ac6q2KI6cBW5es";
- * String claimName  = "family_name";
- * Object claimValue = "Möbius";
+ * <pre style="border:1px solid black; padding:1em;">
+ * <span style="color:darkgreen;">// Parameters for the constructor.</span>
+ * String salt       = <span style="color:brown;">"_26bc4LT-ac6q2KI6cBW5es"</span>;
+ * String claimName  = <span style="color:brown;">"family_name"</span>;
+ * Object claimValue = <span style="color:brown;">"Möbius"</span>;
  *
- * // Create a Disclosure instance with the parameters.
- * Disclosure disclosure = new Disclosure(salt, claimName, claimValue);
+ * <span style="color:darkgreen;">// Create a Disclosure instance with the parameters.</span>
+ * Disclosure disclosure =
+ *     new Disclosure(salt, claimName, claimValue);
  *
- * // Get the string representation of the disclosure.
- * String dc = disclosure.getDisclosure(); // or disclosure.toString();
+ * <span style="color:darkgreen;">// Get the string representation of the disclosure.
+ * // disclosure.toString() returns the same result.</span>
+ * String dc = disclosure.getDisclosure();
  *
- * // dc -> "WyJfMjZiYzRMVC1hYzZxMktJNmNCVzVlcyIsImZhbWlseV9uYW1lIiwiTcO2Yml1cyJd"
+ * <span style="color:darkgreen;">// dc -> "WyJfMjZiYzRMVC1hYzZxMktJNmNCVzVlcyIsImZhbWlseV9uYW1lIiwiTcO2Yml1cyJd"</span>
  * </pre>
  * </blockquote>
  *
@@ -63,15 +65,35 @@ import java.util.Objects;
  * </p>
  *
  * <blockquote>
- * <pre>
- * // Parse a string representation of disclosure.
+ * <pre style="border:1px solid black; padding:1em;">
+ * <span style="color:darkgreen;">// Parse a string representation of disclosure.</span>
  * Disclosure disclosure = Disclosure.parse(
- *     "WyI2cU1RdlJMNWhhaiIsICJmYW1pbHlfbmFtZSIsICJNw7ZiaXVzIl0");
+ *     <span style="color:brown;">"WyI2cU1RdlJMNWhhaiIsICJmYW1pbHlfbmFtZSIsICJNw7ZiaXVzIl0"</span>);
  *
- * // Compute the digest of the disclosure with the default hash algorithm ("sha-256").
- * String digest = disclosure().digest(); // or disclosure.digest("sha-256");
+ * <span style="color:darkgreen;">// Compute the digest of the disclosure with the default
+ * // hash algorithm ("sha-256"). disclosure.digest("sha-256")
+ * // returns the same result.</span>
+ * String digest = disclosure().digest();
  *
- * // digest -> "uutlBuYeMDyjLLTpf6Jxi7yNkEF35jdyWMn9U7b_RYY"
+ * <span style="color:darkgreen;">// digest -> "uutlBuYeMDyjLLTpf6Jxi7yNkEF35jdyWMn9U7b_RYY"</span>
+ * </pre>
+ * </blockquote>
+ *
+ * <p>
+ * <b>Example 3:</b>
+ * </p>
+ *
+ * <blockquote>
+ * <pre style="border:1px solid black; padding:1em;">
+ * <span style="color:darkgreen;">// Parameters for the constructor.</span>
+ * String salt       = <span style="color:brown;">"_26bc4LT-ac6q2KI6cBW5es"</span>;
+ * String claimName  = <span style="color:brown;">"my_array"</span>;
+ * int    claimIndex = 0;
+ * Object claimValue = <span style="color:brown;">"my_array_element_at_index_0"</span>;
+ *
+ * <span style="color:darkgreen;">// Create a Disclosure instance representing an array element.</span>
+ * Disclosure disclosure =
+ *     new Disclosure(salt, claimName, claimIndex, claimValue);
  * </pre>
  * </blockquote>
  *
@@ -84,6 +106,7 @@ public class Disclosure
 {
     private final String salt;
     private final String claimName;
+    private final int    claimIndex;
     private final Object claimValue;
     private final String json;
     private final String disclosure;
@@ -128,17 +151,80 @@ public class Disclosure
      */
     public Disclosure(String salt, String claimName, Object claimValue)
     {
-        this(salt, claimName, claimValue, null, null);
+        this(salt, claimName, -1, claimValue, null, null);
     }
 
 
     /**
-     * A private constructor for the implementation of the
-     * {@link #parse(String)} method.
+     * Constructor with a claim name (an array name), a claim index (an array
+     * index) and a claim value. A salt is randomly generated.
+     *
+     * <p>
+     * The purpose of this constructor is to create a disclosure for an array
+     * element.
+     * </p>
+     *
+     * @param claimName
+     *         A claim name (an array name). Must not be null.
+     *
+     * @param claimIndex
+     *         A claim index (an array index). For an array element, 0 or a
+     *         positive integer should be given. If a negative integer is
+     *         given, the disclosure created by this constructor will not
+     *         represent an array element.
+     *
+     * @param claimValue
+     *         A claim value. May be null.
+     *
+     * @throws IllegalArgumentException
+     *         The given claim name is null.
+     *
+     * @since 1.1
+     */
+    public Disclosure(String claimName, int claimIndex, Object claimValue)
+    {
+        this(generateSalt(), claimName, claimIndex, claimValue);
+    }
+
+
+    /**
+     * Constructor with a salt, a claim name (an array name), a claim index
+     * (an array index) and a claim value.
+     *
+     * @param salt
+     *         A salt. Must not be null. It is recommended that the salt have
+     *         128-bit or higher entropy and be base64url-encoded.
+     *
+     * @param claimName
+     *         A claim name (an array name). Must not be null.
+     *
+     * @param claimIndex
+     *         A claim index (an array index). For an array element, 0 or a
+     *         positive integer should be given. If a negative integer is
+     *         given, the disclosure created by this constructor will not
+     *         represent an array element.
+     *
+     * @param claimValue
+     *         A claim value. May be null.
+     *
+     * @throws IllegalArgumentException
+     *         The given salt and/or claim name are null.
+     *
+     * @since 1.1
+     */
+    public Disclosure(String salt, String claimName, int claimIndex, Object claimValue)
+    {
+        this(salt, claimName, claimIndex, claimValue, null, null);
+    }
+
+
+    /**
+     * A private constructor for all the other constructors and
+     * the implementation of the {@link #parse(String)} method.
      */
     private Disclosure(
-            String salt, String claimName, Object claimValue,
-            String json, String disclosure)
+            String salt, String claimName, int claimIndex,
+            Object claimValue, String json, String disclosure)
     {
         // If a salt is not given.
         if (salt == null)
@@ -155,8 +241,16 @@ public class Disclosure
         // If a JSON representation is not given.
         if (json == null)
         {
-            // [ salt, claimName, claimValue ]
-            json = toJson(List.of(salt, claimName, claimValue));
+            if (0 <= claimIndex)
+            {
+                // [ salt, [ claimName, claimIndex ], claimValue ]
+                json = toJson(List.of(salt, List.of(claimName, claimIndex), claimValue));
+            }
+            else
+            {
+                // [ salt, claimName, claimValue ]
+                json = toJson(List.of(salt, claimName, claimValue));
+            }
         }
 
         // If a disclosure is not given.
@@ -168,6 +262,7 @@ public class Disclosure
 
         this.salt          = salt;
         this.claimName     = claimName;
+        this.claimIndex    = claimIndex;
         this.claimValue    = claimValue;
         this.json          = json;
         this.disclosure    = disclosure;
@@ -197,6 +292,25 @@ public class Disclosure
     public String getClaimName()
     {
         return claimName;
+    }
+
+
+    /**
+     * Get the claim index.
+     *
+     * <p>
+     * When this disclosure represents an array element, this method returns 0
+     * or a positive integer. Otherwise, this method returns a negative integer.
+     * </p>
+     *
+     * @return
+     *         The claim index.
+     *
+     * @since 1.1
+     */
+    public int getClaimIndex()
+    {
+        return claimIndex;
     }
 
 
@@ -358,10 +472,13 @@ public class Disclosure
      *         (3) The JSON that the given string represents fails to be parsed
      *             as a JSON array.
      *         (4) The size of the JSON array is not 3.
-     *         (5) The first and/or second elements of the JSON array are not
-     *             JSON strings.
-     *         (6) The claim name (the second element in the JSON array) is a
-     *             key reserved by the SD-JWT specification.
+     *         (5) The first element of the JSON array is not a JSON string.
+     *         (6) The second element of the JSON array is neither a JSON string
+     *             nor a JSON array.
+     *         (7) When the second element is a JSON array, (a) its size is not
+     *             2, (b) its first element is not a string, (c) its second
+     *             element is not a number.
+     *         (8) The claim name is a key reserved by the SD-JWT specification.
      */
     public static Disclosure parse(String disclosure)
     {
@@ -373,6 +490,54 @@ public class Disclosure
         // Base64url-decode the input to bytes, then build a string from the bytes.
         String json = fromUTF8Bytes(fromBase64url(disclosure));
 
+        // Parse the string as a JSON array having 3 elements.
+        List<?> elements = parseAsDisclosureElements(json);
+
+        // Parse the first element as a salt.
+        String salt = parseAsSalt(elements.get(0));
+
+        // The third element is a claim value. It may be null.
+        Object claimValue = elements.get(2);
+
+        // The second element is either a string or an array having 2 elements.
+        Object second = elements.get(1);
+
+        String claimName;
+        int    claimIndex;
+
+        // In the former case, the string represents a claim name.
+        if (second instanceof String)
+        {
+            claimName  = (String)second;
+            claimIndex = -1;
+        }
+        // In the latter case, the first element of the array represents
+        // an array name and the second element represents an array index.
+        else if (second instanceof List)
+        {
+            List<?> list = parseAsNameAndIndex((List<?>)second);
+            claimName  = (String)list.get(0);
+            claimIndex = (int)   list.get(1);
+        }
+        else
+        {
+            throw new IllegalArgumentException(
+                    "The second element is neither a string nor an array.");
+        }
+
+        // If the claim name is a reserved key.
+        if (isReservedKey(claimName))
+        {
+            throw new IllegalArgumentException(
+                    String.format("The claim name ('%s') is a reserved key.", claimName));
+        }
+
+        return new Disclosure(salt, claimName, claimIndex, claimValue, json, disclosure);
+    }
+
+
+    private static List<?> parseAsDisclosureElements(String json)
+    {
         // Parse the string as a JSON array.
         List<?> elements = fromJson(json, List.class);
 
@@ -381,29 +546,44 @@ public class Disclosure
             throw new IllegalArgumentException("Not a JSON array having 3 elements.");
         }
 
-        Object first = elements.get(0);
-        if (!(first instanceof String))
+        return elements;
+    }
+
+
+    private static String parseAsSalt(Object element)
+    {
+        if (!(element instanceof String))
         {
             throw new IllegalArgumentException("The first element (salt) is not a string.");
         }
 
-        Object second = elements.get(1);
-        if (!(second instanceof String))
-        {
-            throw new IllegalArgumentException("The second element (claimName) is not a string.");
-        }
+        return (String)element;
+    }
 
-        String salt       = (String)first;
-        String claimName  = (String)second;
-        Object claimValue = elements.get(2);
 
-        if (isReservedKey(claimName))
+    private static List<?> parseAsNameAndIndex(List<?> list)
+    {
+        if (list.size() != 2)
         {
             throw new IllegalArgumentException(
-                    String.format("The claim name ('%s') is a reserved key.", claimName));
+                    "The second element is an array but its size is not 2.");
         }
 
-        return new Disclosure(salt, claimName, claimValue, json, disclosure);
+        Object first = list.get(0);
+        if (!(first instanceof String))
+        {
+            throw new IllegalArgumentException(
+                    "The first element in the array (claimName) is not a string.");
+        }
+
+        Object second = list.get(1);
+        if (!(second instanceof Number))
+        {
+            throw new IllegalArgumentException(
+                    "The second element in the array (claimIndex) is not a number.");
+        }
+
+        return List.of((String)first, ((Number)second).intValue());
     }
 
 
