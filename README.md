@@ -593,7 +593,9 @@ The following is an example output that the above code snippet may generate.
 The output string contains two tildes. One is in between the credential JWT
 and the disclosure, and the other is placed at the end.
 
-> eyJ0eXAiOiJ2YytzZC1qd3QiLCJhbGciOiJFUzI1NiJ9.eyJfc2QiOlsiRDFnTU5Kd0JKV0FKR0dxWUV1TUZ4OU5WX2xGelhCT2ItTDk0ZENfX2NadyJdfQ.k4eSYQpu-9-bQsOsfer_gRqFvgkBQ-Sd-ZG2dBND4LDtOKpcXLCESnqnxBLobTEAxbIrypnIfNxEiS6TnR-6jQ~WyJJM0NsMFYtcmtMNmdVVFlxS3VEMV93Iiwibmlja25hbWUiLCJUYWthIl0~
+```
+eyJ0eXAiOiJ2YytzZC1qd3QiLCJhbGciOiJFUzI1NiJ9.eyJfc2QiOlsiRDFnTU5Kd0JKV0FKR0dxWUV1TUZ4OU5WX2xGelhCT2ItTDk0ZENfX2NadyJdfQ.k4eSYQpu-9-bQsOsfer_gRqFvgkBQ-Sd-ZG2dBND4LDtOKpcXLCESnqnxBLobTEAxbIrypnIfNxEiS6TnR-6jQ~WyJJM0NsMFYtcmtMNmdVVFlxS3VEMV93Iiwibmlja25hbWUiLCJUYWthIl0~
+```
 
 The `SDJWT` class provides the `parse(String)` method. An `SDJWT` instance
 can be built from the string representation of an SD-JWT.
