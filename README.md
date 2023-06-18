@@ -8,8 +8,7 @@ specification. The following features are provided.
 - Create a Disclosure.
 - Parse a Disclosure.
 - Create a `Map` instance that contains the "`_sd`" array.
-- Create a Combined Format for Issuance / Presentation.
-- Parse a Combined Format for Issuance / Presentation.
+- Create an SD-JWT.
 
 ## License
 
@@ -40,7 +39,8 @@ Check the [CHANGES.md](CHANGES.md) file to know the latest version.
 ### Disclosure
 
 **Disclosure** is a basic component in the SD-JWT specification. A Disclosure
-consists of a salt, a claim name and a claim value.
+consists of a salt, a claim name and a claim value (for an object property),
+or consists of a salt and a claim value (for an array element).
 
 The `Disclosure` class in this library corresponds to the concept of Disclosure.
 The class provides a constructor that takes 3 arguments which correspond to a
@@ -210,13 +210,46 @@ Disclosure disclosure = new Disclosure("array", array);
 ```
 
 On the other hand, a disclosure can be created for each array element if
-you wish. In this case, a Disclosure consists of a salt, an array name,
-an array index, and an array element value.
+you wish. In this case, a Disclosure consists of a salt and an array
+element value.
 
 ```java
-// Code Snippet 7: Disclosures for array elements.
-Disclosure disclosure0 = new Disclosure("array", 0, "element0");
-Disclosure disclosure1 = new Disclosure("array", 1, "element1");
+// Code Snippet 7: Disclosures for array elements
+
+// Create a disclosure for an array element. The 1-argument constructor
+// of the Disclosure class is used here. The constructor takes the value
+// of an array element. Disclosures for array elements do not require a
+// claim name.
+Disclosure disclosure0 = new Disclosure("element0");
+
+// If a salt needs to be specified explicitly, the 3-argument constructor
+// should be used with 'claimName' null.
+Disclosure disclosure1 = new Disclosure(salt, null, "element1");
+```
+
+An array element can be made selectively-disclosable by replacing it with a
+JSON object that has a sole key-value pair whose key is `...` (literally
+three dots) and whose value is the digest of the disclosure that corresponds
+to the array element. Below is an example.
+
+```json
+{
+  "array": [ "element0", {"...": "11sTIzcE9RxK90IvzjPpWe_s7iQm1Da-AUk_VT45DMo"} ]
+}
+```
+
+The `Disclosure` class provides the `toArrayElement()` method and the
+`toArrayElement(String hashAlgorithm)` method that create a `Map` instance
+representing a selectively-disclosable array element.
+
+```java
+// Code Snippet 8: Selectively-disclosable array element
+
+// Create a Map instance that represents a selectively-disclosable
+// array element.
+Map<String, Object> element = disclosure1.toArrayElement();
+
+// element -> {"...": "11sTIzcE9RxK90IvzjPpWe_s7iQm1Da-AUk_VT45DMo"}
 ```
 
 ### Selective Disclosure Object
@@ -233,7 +266,7 @@ A typical flow of using the `SDObjectBuilder` class is as follows.
 4. Call the `build()` method to create a `Map` instance.
 
 ```java
-// Code Snippet 8: Usage of SDObjectBuilder
+// Code Snippet 9: Usage of SDObjectBuilder
 
 // Create an SDObjectBuilder instance.
 SDObjectBuilder builder = new SDObjectBuilder();
@@ -267,7 +300,7 @@ using the 1-argument constructor of the `SDObjectBuilder` class. The no-argument
 constructor uses "`sha-256`" as the hash algorithm.
 
 ```java
-// Code Snippet 9: Specifying a hash algorithm for SDObjectBuilder to use
+// Code Snippet 10: Specifying a hash algorithm for SDObjectBuilder to use
 
 // Create an SDObjectBuilder instance with a hash algorithm.
 SDObjectBuilder builder = new SDObjectBuilder("sha-512");
@@ -277,7 +310,7 @@ The name of the hash algorithm can be embedded in the `Map` instance by calling
 the 1-argument variant of the `build` method with `true`.
 
 ```java
-// Code Snippet 10: Including the name of the hash algorithm
+// Code Snippet 11: Including the name of the hash algorithm
 
 // Create a Map instance with the name of the hash algorithm included.
 Map<String, Object> map = builder.build(true);
@@ -301,8 +334,6 @@ as listed below.
 
 - `putSDClaim(String claimName, Object claimValue)`
 - `putSDClaim(String salt, String claimName, Object claimValue)`
-- `putSDClaim(String claimName, int claimIndex, Object claimValue)`
-- `putSDClaim(String salt, String claimName, int claimIndex, Object claimValue)`
 
 They are aliases of `putSDClaim(Disclosure)`, meaning that they internally
 create a `Disclosure` instance and then call the `putSDClaim(Disclosure)`
@@ -315,14 +346,15 @@ From the SD-JWT specification:
 > An Issuer MAY add additional digests to the SD-JWT that are not associated
 > with any claim. The purpose of such "decoy" digests is to make it more
 > difficult for an attacker to see the original number of claims contained
-> in the SD-JWT.
+> in the SD-JWT. Decoy digests MAY be added both to the _sd array for objects
+> as well as in arrays.
 
 The `SDObjectBuilder` class has the `putDecoyDigest()` method that adds a
 decoy digest and the `putDecoyDigests(int)` method that adds the specified
 number of decoy digests.
 
 ```java
-// Code Snippet 11: Decoy digests
+// Code Snippet 12: Decoy digests
 
 // Add a decoy digest.
 builder.putDecoyDigest();
@@ -331,12 +363,13 @@ builder.putDecoyDigest();
 builder.putDecoyDigests(3);
 ```
 
-### SD-JWT
+### Credential JWT
 
-Roughly speaking, a JWT whose payload contains the "`_sd`" array somewhere
-can be said **SD-JWT**.
+This library calls a JWT whose payload may contain the "`_sd"` array and/or
+a disclosable array element somewhere **Credential JWT**. A credential JWT
+is always put at the head of an SD-JWT.
 
-This library intentionally avoids providing utility classes to build JWTs
+This library deliberately avoids providing utility classes to build JWTs
 and instead provides only a small utility (`SDObjectBuilder`) to help build
 the payload part of an SD-JWT.
 
@@ -347,7 +380,7 @@ The following is an example of generating an SD-JWT using the
 "[Nimbus JOSE + JWT][NIMBUS_JOSE_JWT]" library.
 
 ```java
-// Code Snippet 12: SD-JWT generation
+// Code Snippet 13: Credential JWT generation
 
 import java.util.*;
 import com.authlete.sd.*;
@@ -357,7 +390,7 @@ import com.nimbusds.jose.jwk.*;
 import com.nimbusds.jose.jwk.gen.*;
 import com.nimbusds.jwt.*;
 
-public class SDJwtGenerationExample
+public class CredentialJwtGenerationExample
 {
     public static void main(String[] args) throws Exception
     {
@@ -369,43 +402,44 @@ public class SDJwtGenerationExample
         Disclosure disclosure = new Disclosure("nickname", "Taka");
 
         // Create an SDObjectBuilder instance to prepare the payload part of
-        // an SD-JWT. "sha-256" is used as a hash algorithm to compute digest
-        // values of Disclosures.
+        // a credential JWT. "sha-256" is used as a hash algorithm to compute
+        // digest values of Disclosures.
         SDObjectBuilder builder = new SDObjectBuilder();
 
         // Put the digest value of the Disclosure.
         builder.putSDClaim(disclosure);
 
-        // Create a Map instance that represents the payload part of an SD-JWT.
-        // The 'claims' map contains the "_sd" array. The size of the array is 1.
+        // Create a Map instance that represents the payload part of a
+        // credential JWT. The 'claims' map contains the "_sd" array.
+        // The size of the array is 1.
         Map<String, Object> claims = builder.build();
 
         //--------------------------------------------------
         // Using the Nimbus JOSE + JWT library
         //--------------------------------------------------
 
-        // Prepare the header part of an SD-JWT.
-        // The header represents {"alg":"ES256","typ":"JWT"}.
+        // Prepare the header part of a credential JWT.
+        // The header represents {"alg":"ES256","typ":"vc+sd-jwt"}.
         JWSHeader header =
             new JWSHeader.Builder(JWSAlgorithm.ES256)
-                .type(JOSEObjectType.JWT).build();
+                .type(new JOSEObjectType("vc+sd-jwt")).build();
 
-        // Prepare the payload part of an SD-JWT.
+        // Prepare the payload part of a credential JWT.
         //
         // Just converting the Map instance to a JWTClaimsSet instance which
         // is to be passed to the constructor of the SignedJWT class below.
         JWTClaimsSet claimsSet = JWTClaimsSet.parse(claims);
 
-        // Create an SD-JWT. (not signed yet)
+        // Create a credential JWT. (not signed yet)
         SignedJWT jwt = new SignedJWT(header, claimsSet);
 
-        // Create a private key to sign the SD-JWT.
+        // Create a private key to sign the credential JWT.
         ECKey privateKey = new ECKeyGenerator(Curve.P_256).generate();
 
-        // Create a signer that signs the SD-JWT with the private key.
+        // Create a signer that signs the credential JWT with the private key.
         JWSSigner signer = new ECDSASigner(privateKey);
 
-        // Let the signer sign the SD-JWT.
+        // Let the signer sign the credential JWT.
         jwt.sign(signer);
 
         // Print the JWT in the JWS compact serialization format.
@@ -414,23 +448,23 @@ public class SDJwtGenerationExample
 }
 ```
 
-The example code above generates an SD-JWT (a kind of JWT) like below.
+The example code above generates a credential JWT (a kind of JWT) like below.
 
 ```
-eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJfc2QiOlsiVGNrcnR4dUF3MXJNTWhZRmNYcHlKSFFfOFg1Q2thSnNPaUx3RDlQVmFFRSJdfQ.pPkAECyr4a1sdAX6_3KP_SCOksqHqMhcAv41wjMudxhs3TxdiHs_-XkILx5Si4w1QSXWXji2FGz3gObSTGN6Tw
+eyJ0eXAiOiJ2YytzZC1qd3QiLCJhbGciOiJFUzI1NiJ9.eyJfc2QiOlsiVzVEX3dSam9qbUZvYUNpeFVLNVJXSFRsVE1TYnNqZHhHU3daYTltXzZ1RSJdfQ.IiJyysrsFqjyv2n9gmjQehvmxYY5g2-nR_mgtn1BeHkiWTYuK_UEoLn00nSteX1cFj1n8waEYwVO-ytnnTzbKg
 ```
 
-The payload part of the SD-JWT holds the "`_sd`" array like below.
+The payload part of the credential JWT holds the "`_sd`" array like below.
 
 ```json
 {
   "_sd": [
-    "TckrtxuAw1rMMhYFcXpyJHQ_8X5CkaJsOiLwD9PVaEE"
+    "W5D_wRjojmFoaCixUK5RWHTlTMSbsjdxGSwZa9m_6uE"
   ]
 }
 ```
 
-### Structured SD-JWT
+### Nested Claims
 
 Claims in the payload part of a JWT may have nested claims like the `address`
 claim in the following example.
@@ -452,7 +486,7 @@ make a Disclosure for each nested claim.
 The following example generates one Disclosure for the `address` claim.
 
 ```java
-// Code Snippet 13: Disclosure per enveloping claim
+// Code Snippet 14: Disclosure per enveloping claim
 
 // Prepare a Map instance that represents the value of the "address" claim.
 Map<String, Object> address = new HashMap<>();
@@ -483,7 +517,7 @@ On the other hand, the following example generates a Disclosure for each nested
 claim under the `address` claim.
 
 ```java
-// Code Snippet 14: Disclosure per nested claim
+// Code Snippet 15: Disclosure per nested claim
 
 // Prepare a Map instance that represents the value of the "address" claim.
 // A digest is created for each claim. As a result, the "_sd" array will
@@ -517,114 +551,61 @@ The `claims` map represents JSON like below.
 }
 ```
 
-### Combined Format
+### SD-JWT
 
-An SD-JWT is supposed to be transmitted with Disclosures. The SD-JWT
-specification defines means to combine an SD-JWT and Disclosures into a single
-string.
-
-When an SD-JWT is issued, it is accompanied by all Disclosures. The SD-JWT and
-all the Disclosures are concatenated using `~` (tilde) as delimiters and form
-a single string. This format is called "**Combined Format for Issuance**".
+An SD-JWT consists of a credential JWT, disclosures and an optional binding
+JWT. The string representation of an SD-JWT is built by concatenating these
+elements with the delimiter tilde `~`. If a binding JWT is omitted, the
+string representation of an SD-JWT ends with `~`.
 
 ```
-<SD-JWT>~<Disclosure 1>~<Disclosure 2>~...~<Disclosure N>
+<Credential-JWT>~<Disclosure 1>~...~<Disclosure N>~[<Binding-JWT>]
 ```
 
-On the other hand, when the legitimate holder of the SD-JWT wants to disclose
-selectively some claims only, the holder sends the SD-JWT and some Disclosures
-that correspond to the claims only. In this case, the SD-JWT and the selected
-Disclosures are concatenated into a single string using the following format,
-which is called "**Combined Format for Presentation**".
+The `SDJWT` class in this library represents an SD-JWT. The class has the
+following two constructors.
 
-```
-<SD-JWT>~<Disclosure 1>~<Disclosure 2>~...~<Disclosure M>~<optional Holder Binding JWT>
-```
+1. `SDJWT(String credentialJwt, Collection<Disclosure> disclosures)`
+2. `SDJWT(String credentialJwt, Collection<Disclosure> disclosures, String bindingJwt)`
 
-The Combined Format for Issuance and the Combined Format for Presentation can
-be distinguished by checking the last part. When the string ends with `~` or a
-JWT, it is Combined Format for Presentation. In other cases, it is Combined
-Format for Issuance.
+The values of the arguments given to the constructors can be obtained by the
+following instance methods, respectively.
 
-The `SDIssuance` class in this library represents Combined Format for Issuance
-while the `SDPresentation` class represents Combined Format for Presentation.
-The `SDCombinedFormat` class is the common super class of the two classes.
+- `String getCredentialJwt()`
+- `List<Disclosure> getDisclosures()`
+- `String getBindingJwt()`
 
-The constructor of the `SDIssuance` class takes two arguments. One is an SD-JWT
-and the other is a collection of Disclosures.
+The `SDJWT` class overrides the `toString()` method so that it can return the
+string representation of the SD-JWT.
 
 ```java
-// Code Snippet 15: SDIssuance's constructor
+// Code Snippet 16: String representation of an SD-JWT
 
-// The 2-argument constructor of the SDIssuance class
-public SDIssuance(String sdJwt, Collection<Disclosure> disclosures)
+// Create an instance of the SDJWT class. In this example, a binding JWT
+// is omitted.
+SDJWT sdJwt = new SDJWT(credentialJwt, List.of(disclosure));
+
+// Print the string representation of the SD-JWT.
+System.out.println(sdJwt.toString());
 ```
 
-The `SDPresentation` class has a 3-argument constructor in addition to a
-2-argument constructor. The 3-argument variant additionally accepts an optional
-binding JWT.
+The following is an example output that the above code snippet may generate.
+The output string contains two tildes. One is in between the credential JWT
+and the disclosure, and the other is placed at the end.
+
+> eyJ0eXAiOiJ2YytzZC1qd3QiLCJhbGciOiJFUzI1NiJ9.eyJfc2QiOlsiRDFnTU5Kd0JKV0FKR0dxWUV1TUZ4OU5WX2xGelhCT2ItTDk0ZENfX2NadyJdfQ.k4eSYQpu-9-bQsOsfer_gRqFvgkBQ-Sd-ZG2dBND4LDtOKpcXLCESnqnxBLobTEAxbIrypnIfNxEiS6TnR-6jQ~WyJJM0NsMFYtcmtMNmdVVFlxS3VEMV93Iiwibmlja25hbWUiLCJUYWthIl0~
+
+The `SDJWT` class provides the `parse(String)` method. An `SDJWT` instance
+can be built from the string representation of an SD-JWT.
 
 ```java
-// Code Snippet 16: SDPresentation's 3-argument constructor
+// Code Snippet 17: Parsing a string as an SD-JWT
 
-// The 3-argument constructor of the SDPresentation class
-public SDPresentation(
-    String sdJwt, Collection<Disclosure> disclosures, String bindingJwt)
-```
+// The string representation of an SD-JWT.
+String input = "eyJ...6jQ~WyJ...Il0~";
 
-As the common super class `SDCombinedFormat` is an abstract class, instances
-of `SDCombinedFormat` cannot be created directly. But the class provides the
-`parse(String)` method that parses a Combined Format and creates an instance
-of either the `SDIssuance` class or the `SDPresentation` class.
-
-The following code shows usage of methods of the `SDCombinedFormat` class.
-
-```java
-// Code Snippet 17: Usage of SDCombinedFormat methods
-
-// SD-JWT
-String sdJwt =
-    "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9." +
-    "eyJfc2QiOlsiTHFFSGNJbGI2cnBZNGJqdnBDc0o5QlhWa3hOVXVrVmRMSmV1d3ZsYlIyVSJdfQ." +
-    "xCg45cUhobOpJ0WGO6kI_OddOBkEW3fMHjfXyhegrY77mV4BzBNR7g6KI10ytVJJg1OGV6dSvuyfm8UBgmVrUg";
-
-// Disclosure
-String disclosure =
-    "WyJsVElJbGdHbm5uTG9aYWpjY1RBNm5RIiwibmlja25hbWUiLCJUYWthIl0";
-
-// Combined Format for Issuance (SD-JWT + 1 Disclosure)
-String combinedFormat = String.format("%s~%s", sdJwt, disclosure);
-
-// Parse the input.
-SDCombinedFormat cf = SDCombinedFormat.parse(combinedFormat);
-
-// The SD-JWT.
-// 'sdJwt' and 'sdJwt2' have the same value.
-String sdJwt2 = cf.getSDJwt();
-
-// The unmodifiable list of Disclosures.
-List<Disclosure> disclosures = cf.getDisclosures();
-
-// If the returned object is an instance of SDIssuance.
-if (cf.isIssuance())
-{
-    // The instance can be cast to SDIssuance.
-    SDIssuance issuance = (SDIssuance)cf;
-}
-
-// If the returned object is an instance of SDPresentation.
-if (cf.isPresentation())
-{
-    // The instance can be cast to SDPresentation.
-    SDPresentation presentation = (SDPresentation)cf;
-
-    // The binding JWT.
-    String bindingJwt = presentation.getBindingJwt();
-}
-
-// The string representation of the Combined Format.
-// 'combinedFormat' and 'combinedFormat2' have the same value.
-String combinedFormat2 = cf.toString();
+// Parse the string.
+SDJWT sdJwt = SDJWT.parse(input);
 ```
 
 ## References

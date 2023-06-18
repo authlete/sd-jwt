@@ -1,6 +1,9 @@
 CHANGES
 =======
 
+1.2 (2023-06-19)
+----------------
+
 Update to follow the following normative changes of the SD-JWT specification.
 
 1. A tilde (`~`) is appended to "Combined Format for Issuance", resulting in
