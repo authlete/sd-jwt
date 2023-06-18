@@ -177,7 +177,8 @@ public class SDObjectBuilder
      *         The {@link Disclosure} instance given to this method.
      *
      * @throws IllegalArgumentException
-     *         The given disclosure is null.
+     *         The given disclosure is null, or the disclosure is not for an
+     *         object property.
      */
     public Disclosure putSDClaim(Disclosure disclosure)
     {
@@ -185,6 +186,13 @@ public class SDObjectBuilder
         if (disclosure == null)
         {
             throw new IllegalArgumentException("'disclosure' is missing.");
+        }
+
+        // If the claim name is null.
+        if (disclosure.getClaimName() == null)
+        {
+            throw new IllegalArgumentException(
+                    "The disclosure is not for an object property.");
         }
 
         // Add the digest of the disclosure.
@@ -253,75 +261,6 @@ public class SDObjectBuilder
     public Disclosure putSDClaim(String salt, String claimName, Object claimValue)
     {
         return putSDClaim(new Disclosure(salt, claimName, claimValue));
-    }
-
-
-    /**
-     * Put the digest value of a selectively-disclosable claim.
-     *
-     * <p>
-     * This method is an alias of {@link #putSDClaim(Disclosure)
-     * putSDClaim}{@code (new }{@link Disclosure#Disclosure(String, int, Object)
-     * Disclosure}{@code (claimName, claimIndex, claimValue))}.
-     * </p>
-     *
-     * @param claimName
-     *         A claim name (an array name). Must not be null.
-     *
-     * @param claimIndex
-     *         A claim index (an array index).
-     *
-     * @param claimValue
-     *         A claim value. May be null.
-     *
-     * @return
-     *         A {@link Disclosure} instance that was created for the
-     *         specified claim.
-     *
-     * @throws IllegalArgumentException
-     *         The given claim name is null.
-     *
-     * @since 1.1
-     */
-    public Disclosure putSDClaim(String claimName, int claimIndex, Object claimValue)
-    {
-        return putSDClaim(new Disclosure(claimName, claimIndex, claimValue));
-    }
-
-
-    /**
-     * Put the digest value of a selectively-disclosable claim.
-     *
-     * <p>
-     * This method is an alias of {@link #putSDClaim(Disclosure)
-     * putSDClaim}{@code (new }{@link Disclosure#Disclosure(String, String, int, Object)
-     * Disclosure}{@code (salt, claimName, claimIndex, claimValue))}.
-     * </p>
-     *
-     * @param salt
-     *         A salt. Must not be null.
-     *
-     * @param claimName
-     *         A claim name (an array name). Must not be null.
-     *
-     * @param claimIndex
-     *         A claim index (an array index).
-     *
-     * @param claimValue
-     *         A claim value. May be null.
-     *
-     * @return
-     *         A {@link Disclosure} instance that was created for the
-     *         specified claim.
-     *
-     * @throws IllegalArgumentException
-     *         The given salt and/or claim name are null.
-     *
-     * @since 1.1
-     */
-    public Disclosure putSDClaim(String salt, String claimName, int claimIndex, Object claimValue)
-    {
-        return putSDClaim(new Disclosure(salt, claimName, claimIndex, claimValue));
     }
 
 
@@ -402,8 +341,8 @@ public class SDObjectBuilder
         //
         //   The array MAY be empty in case the Issuer decided not to
         //   selectively disclose any of the claims at that level.
-        //   However, it is RECOMMENDED to omit _sd claim in this case
-        //   to save space.
+        //   However, it is RECOMMENDED to omit the _sd key in this
+        //   case to save space.
         //
         if (digestList.size() != 0)
         {

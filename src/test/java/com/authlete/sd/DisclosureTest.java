@@ -16,7 +16,11 @@
 package com.authlete.sd;
 
 
+import static com.authlete.sd.SDConstants.KEY_THREE_DOTS;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import java.util.Map;
 import org.junit.Test;
 
 
@@ -66,18 +70,39 @@ public final class DisclosureTest
     @Test
     public void test_03_array()
     {
-        String claimName  = "my_array";
-        int    claimIndex = 10;
-        String claimValue = "my_array_element_at_index_10";
+        String claimValue = "my_array_element";
 
         // Disclosure that represents an array element.
-        Disclosure disclosure1 = new Disclosure(claimName, claimIndex, claimValue);
+        Disclosure disclosure1 = new Disclosure(claimValue);
         String disclosure1Str  = disclosure1.getDisclosure();
 
         Disclosure disclosure2 = Disclosure.parse(disclosure1Str);
 
-        assertEquals(claimName,  disclosure2.getClaimName());
-        assertEquals(claimIndex, disclosure2.getClaimIndex());
+        assertNull(disclosure2.getClaimName());
         assertEquals(claimValue, disclosure2.getClaimValue());
+    }
+
+
+    @Test
+    public void test_04_array_element()
+    {
+        // ["lklxF5jMYlGTPUovMNIvCA", "FR"]
+        String dc     = "WyJsa2x4RjVqTVlsR1RQVW92TU5JdkNBIiwgIkZSIl0";
+        String salt   = "lklxF5jMYlGTPUovMNIvCA";
+        Object value  = "FR";
+        String digest = "w0I8EKcdCtUPkGCNUrfwVp2xEgNjtoIDlOxc9-PlOhs";
+
+        // Create a disclosure for an array element.
+        Disclosure disclosure = Disclosure.parse(dc);
+
+        assertEquals(salt,  disclosure.getSalt());
+        assertEquals(null,  disclosure.getClaimName());
+        assertEquals(value, disclosure.getClaimValue());
+
+        // Create a Map that represents an array element.
+        Map<String, Object> element = disclosure.toArrayElement();
+
+        assertTrue(element.containsKey(KEY_THREE_DOTS));
+        assertEquals(digest, element.get(KEY_THREE_DOTS));
     }
 }

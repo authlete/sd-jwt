@@ -53,8 +53,15 @@ final class SDConstants
 
 
     /**
+     * The "{@code ...}" key reserved by the SD-JWT specification.
+     */
+    public static final String KEY_THREE_DOTS = "...";
+
+
+    /**
      * Keys reserved by the SD-JWT specification.
      */
     public static final Set<String> RESERVED_KEYS =
-            Collections.unmodifiableSet(Set.of(KEY_SD, KEY_SD_ALG, KEY_SD_JWT));
+            Collections.unmodifiableSet(
+                    Set.of(KEY_SD, KEY_SD_ALG, KEY_SD_JWT, KEY_THREE_DOTS));
 }

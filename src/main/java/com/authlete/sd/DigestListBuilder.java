@@ -21,23 +21,23 @@ import static com.authlete.sd.SDUtility.computeDigest;
 import static com.authlete.sd.SDUtility.generateRandomBytes;
 import static com.authlete.sd.SDUtility.toBase64url;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 /**
- * A utility to build a "{@code _sd}" array that lists digest values.
+ * A utility to build an "{@code _sd}" array that lists digest values.
  * This class is used in the implementation of {@link SDObjectBuilder}.
  */
 final class DigestListBuilder
 {
     private final String hashAlgorithm;
     private final Map<String, String> claimNameToDigestMap;
-    private final Map<String, Map<Integer, String>> claimNameToIndexDigestMap;
     private final Set<String> decoyDigestSet;
 
 
@@ -62,9 +62,8 @@ final class DigestListBuilder
         this.hashAlgorithm = (hashAlgorithm != null)
                 ? hashAlgorithm : DEFAULT_HASH_ALGORITHM;
 
-        this.claimNameToDigestMap      = new HashMap<>();
-        this.claimNameToIndexDigestMap = new HashMap<>();
-        this.decoyDigestSet            = new HashSet<>();
+        this.claimNameToDigestMap = new HashMap<>();
+        this.decoyDigestSet       = new HashSet<>();
     }
 
 
@@ -99,30 +98,8 @@ final class DigestListBuilder
     {
         String claimName = disclosure.getClaimName();
         String digest    = disclosure.digest(getHashAlgorithm());
-        int    index     = disclosure.getClaimIndex();
 
-        // [ salt, claimName, claimValue ]
-        if (index < 0)
-        {
-            claimNameToDigestMap.put(claimName, digest);
-            claimNameToIndexDigestMap.remove(claimName);
-
-            return digest;
-        }
-
-        // [ salt, [ claimName, claimIndex ], claimValue ]
-
-        claimNameToDigestMap.remove(claimName);
-
-        Map<Integer, String> indexDigestMap = claimNameToIndexDigestMap.get(claimName);
-
-        if (indexDigestMap == null)
-        {
-            indexDigestMap = new HashMap<>();
-            claimNameToIndexDigestMap.put(claimName, indexDigestMap);
-        }
-
-        indexDigestMap.put(index, digest);
+        claimNameToDigestMap.put(claimName, digest);
 
         return digest;
     }
@@ -182,37 +159,27 @@ final class DigestListBuilder
      */
     public List<String> build()
     {
-        List<String> digests = new ArrayList<>();
-
-        // Digests of [ salt, claimName, claimValue ]
-        digests.addAll(claimNameToDigestMap.values());
-
-        // Digests of [ salt, [ claimName, claimIndex ], claimValue ]
-        claimNameToIndexDigestMap.values().forEach(
-                indexDigestMap -> digests.addAll(indexDigestMap.values()));
-
-        // Decoy digests
-        digests.addAll(decoyDigestSet);
-
+        // Stream of disclosure digests and decoy digests.
+        Stream<String> digests = Stream.concat(
+                claimNameToDigestMap.values().stream(),
+                decoyDigestSet.stream());
 
         // From the SD-JWT specification:
         //
         //   The Issuer MUST hide the original order of the claims in the array.
         //   To ensure this, it is RECOMMENDED to shuffle the array of hashes,
-        //   e.g., by sorting it alphanumerically or randomly. The precise
+        //   e.g., by sorting it alphanumerically or randomly, after potentially
+        //   adding decoy digests as described in Section 5.6. The precise
         //   method does not matter as long as it does not depend on the
         //   original order of elements.
         //
-        Collections.sort(digests);
-
-        return digests;
+        return digests.sorted().collect(Collectors.toList());
     }
 
 
-    void removeDigestByClaimName(String claimName)
+    String removeDigestByClaimName(String claimName)
     {
-        claimNameToDigestMap.remove(claimName);
-        claimNameToIndexDigestMap.remove(claimName);
+        return claimNameToDigestMap.remove(claimName);
     }
 
 
