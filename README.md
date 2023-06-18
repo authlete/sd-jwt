@@ -7,8 +7,10 @@ specification. The following features are provided.
 
 - Create a Disclosure.
 - Parse a Disclosure.
-- Create a `Map` instance that contains the "`_sd`" array.
 - Create an SD-JWT.
+- Parse an SD-JWT.
+- Create a `Map` instance that contains the "`_sd`" array.
+- Create a `Map` instance that represents a selectively-disclosable array element.
 
 ## License
 
