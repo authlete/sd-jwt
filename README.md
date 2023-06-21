@@ -11,6 +11,8 @@ specification. The following features are provided.
 - Parse an SD-JWT.
 - Create a `Map` instance that contains the "`_sd`" array.
 - Create a `Map` instance that represents a selectively-disclosable array element.
+- Encode a map or a list recursively.
+- Decode a map or a list recursively.
 
 ## License
 
@@ -610,6 +612,107 @@ String input = "eyJ...6jQ~WyJ...Il0~";
 
 // Parse the string.
 SDJWT sdJwt = SDJWT.parse(input);
+```
+
+## SDObjectEncoder
+
+The `SDObjectEncoder` class is a utility to make elements in a map or a list
+selectively-disclosable recursively.
+
+The class uses the `SDObjectBuilder` class internally and adds decoy digests
+automatically unless decoy magnification ratio is set to 0.0 through
+constructors or the `setDecoyMagnification(double min, double max)` method.
+
+The following is a simple example of `SDObjectEncoder`.
+
+```java
+// Code Snippet 18: Usage of SDObjectEncoder
+
+// Prepare a dataset.
+Map<String, Object> originalMap = Map.of(
+        "key-1", "abc",
+        "key-2", 123
+);
+
+// Create an encoder with the default parameters.
+SDObjectEncoder encoder = new SDObjectEncoder();
+
+// Encode the dataset.
+Map<String, Object> encodedMap = encoder.encode(originalMap);
+
+// Disclosures yielded as a result of the encoding process.
+List<Disclosure> disclosures = encoder.getDisclosures();
+```
+
+The encoded map (`encodedMap`) by the code snippet above will have a content
+like below. In this example, the `"_sd"` array contains two digests of
+Disclosures that correspond to the two properties in the input map
+(`originalMap`) and a decoy digest which was automatically generated.
+
+```json
+{
+  "_sd": [
+    "3xbuhktzQVLGmk0KknsLUDDARQ43ROf7bSTXW89wFUs",
+    "YA4Io-RgBljWN_c0VZz1DxK18sfAPn4rxgfuQKhSVPQ",
+    "tUCKvqg8OLmfTc-grCpCY5mqW_7Zy5Fx6shouLxpyKM"
+  ],
+  "_sd_alg": "sha-256"
+}
+```
+
+The encoding process yields Disclosures as a result. The `getDisclosures()`
+method returns the list of Disclosures. The following are contents of
+Disclosures corresponding to the above code.
+
+| Digest                                        | Salt                     | Claim Name | Claim Value |
+|:---------------------------------------------:|:------------------------:|:----------:|:-----------:|
+| `YA4Io-RgBljWN_c0VZz1DxK18sfAPn4rxgfuQKhSVPQ` | `exARSKhJVFUAlpKouwY5RQ` | `key-2`    | `123`       |
+| `tUCKvqg8OLmfTc-grCpCY5mqW_7Zy5Fx6shouLxpyKM` | `1TWRUu8-21GkX8wltgXYZA` | `key-1`    | `"abc"`     |
+
+## SDObjectDecoder
+
+The `SDObjectDecoder` class is a utility to decode selectively-disclosable
+elements in a map or a list recursively.
+
+The `decode` methods of the class take an encoded dataset and a list of
+Disclosures. If all the Disclosures are passed, the original dataset is
+restored.
+
+```java
+// Code Snippet 19: Usage of SDObjectDecoder
+
+// Create a decoder.
+SDObjectDecoder decoder = new SDObjectDecoder();
+
+// Decode the encoded map with all the Disclosures.
+// The original dataset should be restored.
+Map<String, Object> decodedMap = decoder.decode(encodedMap, disclosures);
+```
+
+On the other hand, if a subset of Disclosures is passed, only claims that
+correspond to the passed Disclosures are restored.
+
+```java
+// Code Snippet 20: Disclosing claims selectively
+
+// Prepare a subset of Disclosures which contains only the Disclosure
+// that corresponds to the "key-1":"abc".
+List<Disclosure> subset = disclosures.stream()
+        .filter(d -> "key-1".equals(d.getClaimName()))
+        .collect(Collectors.toList());
+
+// Decode the encoded map with the subset of Disclosures.
+decodedMap = decoder.decode(encodedMap, subset);
+```
+
+The resultant decoded map (`decodedMap`) will have a content below. It contains
+only the key-value pair `"key-1":"abc"` and does not contain the key-value pair
+`"key-2":123`.
+
+```json
+{
+  "key-1": "abc"
+}
 ```
 
 ## References

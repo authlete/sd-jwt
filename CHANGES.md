@@ -1,6 +1,9 @@
 CHANGES
 =======
 
+1.3 (2023-06-22)
+----------------
+
 - New types
   - `SDObjectDecoder` class
   - `SDObjectEncoder` class
