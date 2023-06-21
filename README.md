@@ -665,7 +665,7 @@ method returns the list of Disclosures. The following are contents of
 Disclosures corresponding to the above code.
 
 | Digest                                        | Salt                     | Claim Name | Claim Value |
-|:---------------------------------------------:|:------------------------:|:----------:|:-----------:|
+|:----------------------------------------------|:------------------------:|:----------:|:-----------:|
 | `YA4Io-RgBljWN_c0VZz1DxK18sfAPn4rxgfuQKhSVPQ` | `exARSKhJVFUAlpKouwY5RQ` | `key-2`    | `123`       |
 | `tUCKvqg8OLmfTc-grCpCY5mqW_7Zy5Fx6shouLxpyKM` | `1TWRUu8-21GkX8wltgXYZA` | `key-1`    | `"abc"`     |
 
