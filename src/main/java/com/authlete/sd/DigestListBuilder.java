@@ -17,9 +17,6 @@ package com.authlete.sd;
 
 
 import static com.authlete.sd.SDConstants.DEFAULT_HASH_ALGORITHM;
-import static com.authlete.sd.SDUtility.computeDigest;
-import static com.authlete.sd.SDUtility.generateRandomBytes;
-import static com.authlete.sd.SDUtility.toBase64url;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -115,7 +112,7 @@ final class DigestListBuilder
     public String addDecoyDigest()
     {
         // Generate a random digest value.
-        String digest = generateRandomDigest();
+        String digest = SDUtility.generateRandomDigest(getHashAlgorithm());
 
         decoyDigestSet.add(digest);
 
@@ -180,18 +177,5 @@ final class DigestListBuilder
     String removeDigestByClaimName(String claimName)
     {
         return claimNameToDigestMap.remove(claimName);
-    }
-
-
-    /**
-     * Generate a random digest value.
-     */
-    private String generateRandomDigest()
-    {
-        // Random value with 512-bit entropy.
-        byte[] input  = generateRandomBytes(64);
-        byte[] digest = computeDigest(getHashAlgorithm(), input);
-
-        return toBase64url(digest);
     }
 }

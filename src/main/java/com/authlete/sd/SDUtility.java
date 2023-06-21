@@ -24,6 +24,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.Map;
 import com.google.gson.Gson;
 
 
@@ -164,10 +165,35 @@ final class SDUtility
 
 
     /**
+     * Generate a random digest value.
+     */
+    public static String generateRandomDigest(String hashAlgorithm)
+    {
+        // Random value with 512-bit entropy.
+        byte[] input  = generateRandomBytes(64);
+        byte[] digest = computeDigest(hashAlgorithm, input);
+
+        return toBase64url(digest);
+    }
+
+
+    /**
      * Check whether the given key is reserved by the SD-JWT specification.
      */
     public static boolean isReservedKey(String key)
     {
         return SDConstants.RESERVED_KEYS.contains(key);
+    }
+
+
+    /**
+     * Create a decoy array element.
+     */
+    public static Map<String, Object> generateDecoyArrayElement(String hashAlgorithm)
+    {
+        String digest = generateRandomDigest(hashAlgorithm);
+
+        // { "...": "<digest>" }
+        return Map.of(SDConstants.KEY_THREE_DOTS, digest);
     }
 }

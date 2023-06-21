@@ -64,4 +64,12 @@ final class SDConstants
     public static final Set<String> RESERVED_KEYS =
             Collections.unmodifiableSet(
                     Set.of(KEY_SD, KEY_SD_ALG, KEY_SD_JWT, KEY_THREE_DOTS));
+
+
+    /**
+     * Claims that are not selectively-disclosable.
+     */
+    public static final Set<String> RETAINED_CLAIMS =
+            Collections.unmodifiableSet(
+                    Set.of("iss", "iat", "nbf", "exp", "cnf", "type", "status"));
 }
