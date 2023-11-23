@@ -1,6 +1,13 @@
 CHANGES
 =======
 
+1.4 (2023-11-23)
+----------------
+
+- `SDConstants` class
+  - Replaced `"type"` in the `RETAINED_CLAIMS` set with `"vct"` to align with
+    the breaking change by the draft 01 of the SD-JWT VC specification.
+
 1.3 (2023-06-22)
 ----------------
 
