@@ -397,7 +397,7 @@ public class SDObjectEncoder
      *   <li>{@code nbf}
      *   <li>{@code exp}
      *   <li>{@code cnf}
-     *   <li>{@code type}
+     *   <li>{@code vct}
      *   <li>{@code status}
      * </ul>
      *

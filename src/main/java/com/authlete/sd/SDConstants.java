@@ -71,5 +71,5 @@ final class SDConstants
      */
     public static final Set<String> RETAINED_CLAIMS =
             Collections.unmodifiableSet(
-                    Set.of("iss", "iat", "nbf", "exp", "cnf", "type", "status"));
+                    Set.of("iss", "iat", "nbf", "exp", "cnf", "vct", "status"));
 }
