@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Authlete, Inc.
+ * Copyright (C) 2023-2024 Authlete, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ import java.util.Map;
  * builder.putClaim(claimName, claimValue);
  *
  * <span style="color:darkgreen;">// Build a map that represents a JSON object.</span>
- * Map<String, Object> map = builder.build(true);
+ * Map&lt;String, Object&gt; map = builder.build(true);
  *
  * <span style="color:darkgreen;">// map ->
  * // {
