@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Authlete, Inc.
+ * Copyright (C) 2023-2024 Authlete, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,14 @@
 package com.authlete.sd;
 
 
+import static com.authlete.sd.SDConstants.DEFAULT_HASH_ALGORITHM;
+import static com.authlete.sd.SDConstants.KEY_SD_ALG;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -46,6 +50,8 @@ public class SDJWT
     private final List<Disclosure> disclosures;
     private final String bindingJwt;
     private final String serialized;
+    private final String hashAlgorithm;
+    private final String sdHash;
 
 
     /**
@@ -92,6 +98,12 @@ public class SDJWT
 
         // The string representation of this SD-JWT.
         this.serialized = serialize(credentialJwt, this.disclosures, bindingJwt);
+
+        // The hash algorithm used by the disclosures.
+        this.hashAlgorithm = determineHashAlgorithm(credentialJwt);
+
+        // The SD hash value.
+        this.sdHash = computeSdHash(credentialJwt, this.disclosures, hashAlgorithm);
     }
 
 
@@ -151,6 +163,59 @@ public class SDJWT
     public String getBindingJwt()
     {
         return bindingJwt;
+    }
+
+
+    /**
+     * Get the hash algorithm used for the disclosures.
+     *
+     * <p>
+     * This method returns the value of the {@code "_sd_alg"} claim in the
+     * credential JWT. If the claim is not available, {@code "sha-256"}
+     * (the default hash algorithm) is returned.
+     * </p>
+     *
+     * @return
+     *         The hash algorithm.
+     *
+     * @since 1.5
+     */
+    public String getHashAlgorithm()
+    {
+        return hashAlgorithm;
+    }
+
+
+    /**
+     * Get the SD hash value that can be used as the value of the {@code "sd_hash"}
+     * claim in a key binding JWT. If this SD-JWT includes a key binding JWT, the
+     * value of the {@code "sd_hash"} claim in the key binding JWT must match the
+     * value returned by this method.
+     *
+     * <p>
+     * The input for the hash computation is the serialized form of this SD-JWT,
+     * excluding the key binding JWT, which may be appended at the end.
+     * </p>
+     *
+     * <p>
+     * The algorithm for the hash computation is the same as used for disclosures.
+     * This algorithm is provided by the {@link #getHashAlgorithm()} method.
+     * </p>
+     *
+     * <p>
+     * The returned value is base64url-encoded as required by the SD-JWT
+     * specification.
+     * </p>
+     *
+     * @return
+     *         The SD hash value computed using the credential JWT and disclosures
+     *         of this SD-JWT.
+     *
+     * @since 1.5
+     */
+    public String getSDHash()
+    {
+        return sdHash;
     }
 
 
@@ -245,5 +310,66 @@ public class SDJWT
 
         // Build a string representation of SD-JWT.
         return stream.collect(Collectors.joining(DELIMITER));
+    }
+
+
+    @SuppressWarnings("unchecked")
+    private static String determineHashAlgorithm(String credentialJwt)
+    {
+        // If a credential JWT is not specified. (This is abnormal.)
+        if (credentialJwt == null)
+        {
+            return DEFAULT_HASH_ALGORITHM;
+        }
+
+        // If the credential JWT does not have the payload. (This is abnormal.)
+        String[] fields = credentialJwt.split("\\.");
+        if (fields.length < 2)
+        {
+            return DEFAULT_HASH_ALGORITHM;
+        }
+
+        Map<String, Object> payload;
+
+        try
+        {
+            // Decode the second field of the credential JWT with base64url.
+            byte[] decoded = SDUtility.fromBase64url(fields[1]);
+
+            // The decoded field should form a string.
+            String string = new String(decoded, StandardCharsets.UTF_8);
+
+            // The string should be a JSON object.
+            payload = SDUtility.fromJson(string, Map.class);
+        }
+        catch (RuntimeException cause)
+        {
+            // The payload part is malformed.
+            return DEFAULT_HASH_ALGORITHM;
+        }
+
+        // The value of the "_sd_alg" claim in the payload.
+        Object alg = payload.get(KEY_SD_ALG);
+
+        // If the payload does not contain the "_sd_alg" claim or
+        // its value is not a string.
+        if (!(alg instanceof String))
+        {
+            return DEFAULT_HASH_ALGORITHM;
+        }
+
+        // The algorithm specified by the "_sd_alg" claim.
+        return (String)alg;
+    }
+
+
+    private static String computeSdHash(
+            String credentialJwt, List<Disclosure> disclosures, String algorithm)
+    {
+        // Build the input for hash computation.
+        String input = serialize(credentialJwt, disclosures, null);
+
+        // Compute the hash value of the input.
+        return SDUtility.computeDigest(algorithm, input);
     }
 }

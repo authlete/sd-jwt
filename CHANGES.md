@@ -1,6 +1,10 @@
 CHANGES
 =======
 
+- `SDJWT` class
+  - Added `getHashAlgorithm()` method.
+  - Added `getSDHash()` method.
+
 1.4 (2023-11-23)
 ----------------
 
