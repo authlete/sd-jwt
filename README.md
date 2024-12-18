@@ -715,6 +715,44 @@ only the key-value pair `"key-1":"abc"` and does not contain the key-value pair
 }
 ```
 
+## SD-JWT Verification
+
+The [VerificationTest](src/test/java/com/authlete/sd/VerificationTest.java) class
+demonstrates the process of creating a verifiable credential with a binding key
+embedded, generating a verifiable presentation with a key binding JWT, and
+verifying the verifiable presentation.
+
+```java
+@Test
+public void test_verification() throws ParseException, JOSEException
+{
+    // Create an issuer key for signing the credential JWT, which is
+    // to be part of the verifiable credential.
+    JWK issuerKey = JWK.parse(ISSUER_KEY);
+
+    // Create a wallet key, which is to be embedded in the credential
+    // JWT and used for signing the key binding JWT.
+    JWK walletKey = JWK.parse(WALLET_KEY);
+
+    // Create a verifiable credential. The wallet's public key is to
+    // be embedded in the credential JWT.
+    SDJWT vc = createVC(issuerKey, walletKey.toPublicJWK());
+
+    // Create a verifiable presentation. The wallet's private key is
+    // to be used for signing the key binding JWT.
+    SDJWT vp = createVP(vc, walletKey);
+
+    // Verify the verifiable presentation. The issuer's public key is
+    // used to verify the signature of the credential JWT, while the
+    // wallet's public key, embedded in the credential JWT, is used
+    // to verify the signature of the key binding JWT.
+    verifyVP(vp, issuerKey.toPublicJWK());
+}
+```
+
+For more details, please refer to the implementations of the `createVC`,
+`createVP`, and `verifyVP` methods.
+
 ## References
 
 - SD-JWT Datatracker: https://datatracker.ietf.org/doc/draft-ietf-oauth-selective-disclosure-jwt/
