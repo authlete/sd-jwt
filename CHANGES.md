@@ -1,6 +1,9 @@
 CHANGES
 =======
 
+1.6 (2025-10-15)
+----------------
+
 - Changed the release version from Java 11 to Java 8.
 
 1.5 (2024-12-18)

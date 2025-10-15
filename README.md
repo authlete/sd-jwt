@@ -468,6 +468,10 @@ The payload part of the credential JWT holds the "`_sd`" array like below.
 }
 ```
 
+NOTE: The media type for SD-JWT-based verifiable credentials was changed
+from `vc+sd-jwt` to `dc+sd-jwt` in
+[oauth-sd-jwt-vc PR 268](https://github.com/oauth-wg/oauth-sd-jwt-vc/pull/268).
+
 ### Nested Claims
 
 Claims in the payload part of a JWT may have nested claims like the `address`
