@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Authlete, Inc.
+ * Copyright (C) 2023-2025 Authlete, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 package com.authlete.sd;
 
 
+import static com.authlete.sd.CollectionUtility.listOf;
+import static com.authlete.sd.CollectionUtility.mapOf;
 import static org.junit.Assert.assertEquals;
 import java.util.Collection;
 import java.util.List;
@@ -30,17 +32,17 @@ public final class SDObjectDecoderTest
     @Test
     public void test_01_map()
     {
-        List<String> sublist = List.of(
+        List<String> sublist = listOf(
                 "element-1",
                 "element-2"
         );
 
-        Map<String, String> submap = Map.of(
+        Map<String, String> submap = mapOf(
                 "sub-key-1", "sub-value-1",
                 "sub-key-2", "sub-value-2"
         );
 
-        Map<String, Object> originalMap = Map.of(
+        Map<String, Object> originalMap = mapOf(
                 "key-1", "value-1",
                 "key-2", sublist,
                 "key-3", submap
@@ -66,25 +68,25 @@ public final class SDObjectDecoderTest
         // Disclose none. Only empty "key-2" and "key-3" should be contained.
         disclosed   = null;
         decodedMap  = decoder.decode(encodedMap, disclosed);
-        expectedMap = Map.of("key-2", List.of(), "key-3", Map.of());
+        expectedMap = mapOf("key-2", listOf(), "key-3", mapOf());
         assertEquals(expectedMap, decodedMap);
 
         // Disclose "key-1" only.
         disclosed   = filter(disclosures, d -> "key-1".equals(d.getClaimName()));
         decodedMap  = decoder.decode(encodedMap, disclosed);
-        expectedMap = Map.of("key-1", "value-1", "key-2", List.of(), "key-3", Map.of());
+        expectedMap = mapOf("key-1", "value-1", "key-2", listOf(), "key-3", mapOf());
         assertEquals(expectedMap, decodedMap);
 
         // Disclose array elements only.
         disclosed   = filter(disclosures, d -> d.getClaimName() == null);
         decodedMap  = decoder.decode(encodedMap, disclosed);
-        expectedMap = Map.of("key-2", sublist, "key-3", Map.of());
+        expectedMap = mapOf("key-2", sublist, "key-3", mapOf());
         assertEquals(expectedMap, decodedMap);
 
         // Disclose key-value pairs in the sub map only.
         disclosed   = filter(disclosures, d -> d.getClaimName() != null && d.getClaimName().startsWith("sub-key-"));
         decodedMap  = decoder.decode(encodedMap, disclosed);
-        expectedMap = Map.of("key-2", List.of(), "key-3", submap);
+        expectedMap = mapOf("key-2", listOf(), "key-3", submap);
         assertEquals(expectedMap, decodedMap);
     }
 
@@ -92,17 +94,17 @@ public final class SDObjectDecoderTest
     @Test
     public void test_02_list()
     {
-        List<String> sublist = List.of(
+        List<String> sublist = listOf(
                 "sub-element-1",
                 "sub-element-2"
         );
 
-        Map<String, String> submap = Map.of(
+        Map<String, String> submap = mapOf(
                 "sub-key-1", "sub-value-1",
                 "sub-key-2", "sub-value-2"
         );
 
-        List<Object> originalList = List.of(
+        List<Object> originalList = listOf(
                 "element-1",
                 sublist,
                 submap
@@ -128,25 +130,25 @@ public final class SDObjectDecoderTest
         // Disclose none. Only an empty list and an empty map should be restored.
         disclosed    = null;
         decodedList  = decoder.decode(encodedList, disclosed);
-        expectedList = List.of(List.of(), Map.of());
+        expectedList = listOf(listOf(), mapOf());
         assertEquals(expectedList, decodedList);
 
         // Disclose "element-1" only.
         disclosed    = filter(disclosures, d -> "element-1".equals(d.getClaimValue()));
         decodedList  = decoder.decode(encodedList, disclosed);
-        expectedList = List.of("element-1", List.of(), Map.of());
+        expectedList = listOf("element-1", listOf(), mapOf());
         assertEquals(expectedList, decodedList);
 
         // Disclose elements in the sub array only.
         disclosed    = filter(disclosures, d -> ((String)d.getClaimValue()).startsWith("sub-element-"));
         decodedList  = decoder.decode(encodedList, disclosed);
-        expectedList = List.of(sublist, Map.of());
+        expectedList = listOf(sublist, mapOf());
         assertEquals(expectedList, decodedList);
 
         // Disclose key-value pairs in the sub map only.
         disclosed   = filter(disclosures, d -> d.getClaimName() != null && d.getClaimName().startsWith("sub-key-"));
         decodedList  = decoder.decode(encodedList, disclosed);
-        expectedList = List.of(List.of(), submap);
+        expectedList = listOf(listOf(), submap);
         assertEquals(expectedList, decodedList);
     }
 

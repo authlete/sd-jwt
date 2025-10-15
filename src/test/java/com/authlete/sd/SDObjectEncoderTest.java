@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Authlete, Inc.
+ * Copyright (C) 2023-2025 Authlete, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 package com.authlete.sd;
 
 
+import static com.authlete.sd.CollectionUtility.listOf;
+import static com.authlete.sd.CollectionUtility.mapOf;
 import static com.authlete.sd.SDConstants.KEY_SD;
 import static com.authlete.sd.SDConstants.KEY_SD_ALG;
 import static com.authlete.sd.SDConstants.KEY_THREE_DOTS;
@@ -35,17 +37,17 @@ public final class SDObjectEncoderTest
     @Test
     public void test_01_map()
     {
-        List<String> sublist = List.of(
+        List<String> sublist = listOf(
                 "element-1",
                 "element-2"
         );
 
-        Map<String, String> submap = Map.of(
+        Map<String, String> submap = mapOf(
                 "sub-key-1", "sub-value-1",
                 "sub-key-2", "sub-value-2"
         );
 
-        Map<String, Object> originalMap = Map.of(
+        Map<String, Object> originalMap = mapOf(
                 "key-1", "value-1",
                 "key-2", sublist,
                 "key-3", submap
@@ -112,17 +114,17 @@ public final class SDObjectEncoderTest
     @Test
     public void test_02_list()
     {
-        List<String> sublist = List.of(
+        List<String> sublist = listOf(
                 "sub-element-1",
                 "sub-element-2"
         );
 
-        Map<String, String> submap = Map.of(
+        Map<String, String> submap = mapOf(
                 "sub-key-1", "sub-value-1",
                 "sub-key-2", "sub-value-2"
         );
 
-        List<Object> originalList = List.of(
+        List<Object> originalList = listOf(
                 "element-1",
                 sublist,
                 submap
@@ -234,7 +236,7 @@ public final class SDObjectEncoderTest
     @Test
     public void test_03_retained_claims()
     {
-        Map<String, Object> originalMap = Map.of(
+        Map<String, Object> originalMap = mapOf(
                 "iss", "issuer",
                 "iat", 123,
                 "custom-key", "custom-value"

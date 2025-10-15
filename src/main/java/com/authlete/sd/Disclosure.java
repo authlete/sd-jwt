@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Authlete, Inc.
+ * Copyright (C) 2023-2025 Authlete, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 package com.authlete.sd;
 
 
+import static com.authlete.sd.CollectionUtility.listOf;
+import static com.authlete.sd.CollectionUtility.mapOf;
 import static com.authlete.sd.SDConstants.DEFAULT_HASH_ALGORITHM;
 import static com.authlete.sd.SDUtility.computeDigest;
 import static com.authlete.sd.SDUtility.fromBase64url;
@@ -192,12 +194,12 @@ public class Disclosure
             if (claimName == null)
             {
                 // [ salt, claimValue ]
-                json = toJson(List.of(salt, claimValue));
+                json = toJson(listOf(salt, claimValue));
             }
             else
             {
                 // [ salt, claimName, claimValue ]
-                json = toJson(List.of(salt, claimName, claimValue));
+                json = toJson(listOf(salt, claimName, claimValue));
             }
         }
 
@@ -453,7 +455,7 @@ public class Disclosure
         }
 
         // { "...": "<digest>" }
-        return Map.of(SDConstants.KEY_THREE_DOTS, digest(hashAlgorithm));
+        return mapOf(SDConstants.KEY_THREE_DOTS, (Object)digest(hashAlgorithm));
     }
 
 
