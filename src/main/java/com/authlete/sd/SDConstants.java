@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Authlete, Inc.
+ * Copyright (C) 2023-2025 Authlete, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package com.authlete.sd;
 
 
+import static com.authlete.sd.CollectionUtility.setOf;
 import java.util.Collections;
 import java.util.Set;
 
@@ -63,7 +64,7 @@ final class SDConstants
      */
     public static final Set<String> RESERVED_KEYS =
             Collections.unmodifiableSet(
-                    Set.of(KEY_SD, KEY_SD_ALG, KEY_SD_JWT, KEY_THREE_DOTS));
+                    setOf(KEY_SD, KEY_SD_ALG, KEY_SD_JWT, KEY_THREE_DOTS));
 
 
     /**
@@ -71,5 +72,5 @@ final class SDConstants
      */
     public static final Set<String> RETAINED_CLAIMS =
             Collections.unmodifiableSet(
-                    Set.of("iss", "iat", "nbf", "exp", "cnf", "vct", "status"));
+                    setOf("iss", "iat", "nbf", "exp", "cnf", "vct", "status"));
 }

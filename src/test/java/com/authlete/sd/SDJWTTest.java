@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2024 Authlete, Inc.
+ * Copyright (C) 2023-2025 Authlete, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
 package com.authlete.sd;
 
 
+import static com.authlete.sd.CollectionUtility.listOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import org.junit.Test;
 
 
@@ -255,7 +255,7 @@ public final class SDJWTTest
     public void test_hash_algorithm_not_specified()
     {
         // SD-JWT whose credential JWT does not contain the "_sd_alg" claim.
-        SDJWT sdJwt = new SDJWT("a.b.c", List.of(new Disclosure("key", "value")));
+        SDJWT sdJwt = new SDJWT("a.b.c", listOf(new Disclosure("key", "value")));
 
         // When the "_sd_alg" claim is not available, the default algorithm
         // should be returned.
@@ -273,7 +273,7 @@ public final class SDJWTTest
         String crJwt = "header." + SDUtility.toBase64url(payload) + ".signature";
 
         // SD-JWT whose credential JWT contains the "_sd_alg" claim.
-        SDJWT sdJwt = new SDJWT(crJwt, List.of(new Disclosure("key", "value")));
+        SDJWT sdJwt = new SDJWT(crJwt, listOf(new Disclosure("key", "value")));
 
         // When the "_sd_ag" claim is available, the getHashAlgorithm() method
         // should return the value of the claim.

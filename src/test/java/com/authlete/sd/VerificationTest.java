@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Authlete, Inc.
+ * Copyright (C) 2024-2025 Authlete, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 package com.authlete.sd;
 
 
+import static com.authlete.sd.CollectionUtility.listOf;
+import static com.authlete.sd.CollectionUtility.mapOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import java.security.Key;
@@ -103,12 +105,12 @@ public class VerificationTest
     private static SDJWT createVC(JWK issuerKey, JWK walletKey) throws JOSEException, ParseException
     {
         // Normal claims.
-        Map<String, Object> claims = Map.of(
+        Map<String, Object> claims = mapOf(
                 "company", "Authlete"
         );
 
         // Disclosable user claims.
-        List<Disclosure> disclosableClaims = List.of(
+        List<Disclosure> disclosableClaims = listOf(
                 new Disclosure("given_name", "Takahiko"),
                 new Disclosure("family_name", "Kawasaki")
         );
@@ -214,7 +216,7 @@ public class VerificationTest
         if (claims != null)
         {
             // For each claim.
-            for (var claim : claims.entrySet())
+            for (Map.Entry<String, Object> claim : claims.entrySet())
             {
                 // Add the claim.
                 builder.putClaim(claim.getKey(), claim.getValue());
@@ -225,7 +227,7 @@ public class VerificationTest
         if (disclosableClaims != null)
         {
             // For each disclosable claims.
-            for (var claim : disclosableClaims)
+            for (Disclosure claim : disclosableClaims)
             {
                 // Add the claim.
                 builder.putSDClaim(claim);
@@ -242,7 +244,7 @@ public class VerificationTest
     private static Map<String, Object> buildCnfForBindingKey(JWK bindingKey)
     {
         // Embed the key as the value of the "jwk" property.
-        return Map.of("jwk", bindingKey.toJSONObject());
+        return mapOf("jwk", bindingKey.toJSONObject());
     }
 
 
@@ -250,10 +252,10 @@ public class VerificationTest
     {
         // Select disclosable claims to be passed to verifiers.
         // In this example, only the first one is disclosed.
-        List<Disclosure> disclosures = List.of(vc.getDisclosures().get(0));
+        List<Disclosure> disclosures = listOf(vc.getDisclosures().get(0));
 
         // The intended audience of the verifiable presentation.
-        List<String> audience = List.of("https://verifier.example.com");
+        List<String> audience = listOf("https://verifier.example.com");
 
         // Create a binding JWT, which is part of a verifiable presentation.
         SignedJWT bindingJwt = createBindingJwt(vc, disclosures, audience, walletKey);

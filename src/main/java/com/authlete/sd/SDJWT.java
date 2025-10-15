@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2024 Authlete, Inc.
+ * Copyright (C) 2023-2025 Authlete, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,7 +91,7 @@ public class SDJWT
                 ? Collections.unmodifiableList(Collections.emptyList())
                 : disclosures.stream()
                     .filter(Objects::nonNull)
-                    .collect(Collectors.toUnmodifiableList());
+                    .collect(Collectors.toList());
 
         // Binding JWT
         this.bindingJwt = bindingJwt;
