@@ -4,7 +4,7 @@
 
     <groupId>com.authlete</groupId>
     <artifactId>sd-jwt</artifactId>
-    <version>1.6-SNAPSHOT</version>
+    <version>1.6</version>
     <packaging>jar</packaging>
     <name>${project.groupId}:${project.artifactId}</name>
     <description>
@@ -32,7 +32,7 @@
         <connection>scm:git:git@github.com:authlete/sd-jwt.git</connection>
         <developerConnection>scm:git:git@github.com:authlete/sd-jwt.git</developerConnection>
         <url>https://github.com/authlete/sd-jwt.git</url>
-        <tag>HEAD</tag>
+        <tag>sd-jwt-1.6</tag>
     </scm>
 
     <properties>
