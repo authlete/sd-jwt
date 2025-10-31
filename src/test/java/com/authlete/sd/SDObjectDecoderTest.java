@@ -19,6 +19,7 @@ package com.authlete.sd;
 import static com.authlete.sd.CollectionUtility.listOf;
 import static com.authlete.sd.CollectionUtility.mapOf;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -156,5 +157,88 @@ public final class SDObjectDecoderTest
     private static List<Disclosure> filter(List<Disclosure> disclosures, Predicate<? super Disclosure> predicate)
     {
         return disclosures.stream().filter(predicate).collect(Collectors.toList());
+    }
+
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void test_03_nested_map()
+    {
+        String PLACE_OF_BIRTH = "place_of_birth";
+        String COUNTRY        = "country";
+        String COUNTRY_VALUE  = "DD";
+
+        // {"country": "DD"}
+        SDObjectBuilder nestedMapBuilder = new SDObjectBuilder();
+        Disclosure      nestedDisclosure = new Disclosure(COUNTRY, COUNTRY_VALUE);
+        nestedMapBuilder.putSDClaim(nestedDisclosure);
+        Map<String, Object> nestedMap    = nestedMapBuilder.build();
+
+        // {"place_of_birth": {"country": "DD"}}
+        SDObjectBuilder topMapBuilder = new SDObjectBuilder();
+        Disclosure      topDisclosure = new Disclosure(PLACE_OF_BIRTH, nestedMap);
+        topMapBuilder.putSDClaim(topDisclosure);
+        Map<String, Object> topMap    = topMapBuilder.build();
+
+        // Decode the map.
+        SDObjectDecoder decoder = new SDObjectDecoder();
+        Map<String, Object> decodedMap = decoder.decode(topMap, listOf(topDisclosure, nestedDisclosure));
+
+        // The top map should contain the "place_of_birth" property and
+        // its value should be a map.
+        Object pob = decodedMap.get(PLACE_OF_BIRTH);
+        assertTrue(pob instanceof Map);
+
+        // The "place_of_birth" map should contain the "country" property and
+        // its value should be a string.
+        Object country = ((Map<String, Object>)pob).get(COUNTRY);
+        assertTrue(country instanceof String);
+
+        // The value of the "country" property should be "DD".
+        assertEquals(COUNTRY_VALUE, country);
+    }
+
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void test_04_array_element()
+    {
+        String NATIONALITIES = "nationalities";
+        String FR = "FR";
+        String JP = "JP";
+
+        // Create selectively-disclosable array elements which represent
+        // country codes for France ("FR") and Japan ("JP").
+        Disclosure frDisclosure = new Disclosure(FR);
+        Disclosure jpDisclosure = new Disclosure(JP);
+
+        // {
+        //   "nationalities": [
+        //     {"...", "??????????"},    <-- "FR"
+        //     {"...", "??????????"}     <-- "JP"
+        //   ]
+        // }
+        Map<String, Object> encodedMap = mapOf(
+                NATIONALITIES, listOf(
+                        frDisclosure.toArrayElement(),
+                        jpDisclosure.toArrayElement()
+                )
+        );
+
+        // Decode the map.
+        SDObjectDecoder decoder = new SDObjectDecoder();
+        Map<String, Object> decodedMap = decoder.decode(encodedMap, listOf(frDisclosure, jpDisclosure));
+
+        // "nationalities"
+        Object nationalities = decodedMap.get(NATIONALITIES);
+        assertTrue(nationalities instanceof List);
+
+        // "FR"
+        Object first = ((List<?>)nationalities).get(0);
+        assertEquals(FR, first);
+
+        // "JP"
+        Object second = ((List<?>)nationalities).get(1);
+        assertEquals(JP, second);
     }
 }
