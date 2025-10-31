@@ -1,6 +1,14 @@
 CHANGES
 =======
 
+1.7 (2025-10-31)
+----------------
+
+- `SDObjectDecoder` class
+  - bugfix: Decoded values should also be processed recursively.
+    This bug previously prevented nested `_sd` arrays and `...` values
+    from being handled properly. (PR #5)
+
 1.6 (2025-10-15)
 ----------------
 
