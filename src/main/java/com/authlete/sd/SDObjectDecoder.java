@@ -338,6 +338,7 @@ public class SDObjectDecoder
     }
 
 
+    @SuppressWarnings("unchecked")
     private void decodeSDElement(
             Map<String, Disclosure> digestMap,
             String digest, Map<String, Object> decodedMap)
@@ -368,6 +369,19 @@ public class SDObjectDecoder
             // disclosure is for an array element, not for an object property.
             throw new IllegalArgumentException(
                     "The digest of a disclosure for an array element is found in the '_sd' array.");
+        }
+
+        // If the value is a map.
+        if (claimValue instanceof Map)
+        {
+            // Decode the nested map.
+            claimValue = decodeMap(digestMap, (Map<String, Object>)claimValue);
+        }
+        // If the value is a list.
+        else if (claimValue instanceof List)
+        {
+            // Decode the list.
+            claimValue = decodeList(digestMap, (List<?>)claimValue);
         }
 
         // Add the disclosed key-value pair.
