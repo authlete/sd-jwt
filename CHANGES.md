@@ -1,6 +1,9 @@
 CHANGES
 =======
 
+- `SDUtility` class
+  - Tuned Gson instance creation to address Issue #6.
+
 1.7 (2025-10-31)
 ----------------
 
