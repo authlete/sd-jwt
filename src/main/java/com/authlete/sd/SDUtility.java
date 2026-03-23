@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2025 Authlete, Inc.
+ * Copyright (C) 2023-2026 Authlete, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,10 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Map;
+import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.ToNumberPolicy;
 
 
 /**
@@ -35,7 +38,18 @@ import com.google.gson.Gson;
 final class SDUtility
 {
     private static final SecureRandom RANDOM = new SecureRandom();
-    private static final Gson GSON = new Gson();
+    private static final Gson GSON = createGson();
+
+
+    private static Gson createGson()
+    {
+        return new GsonBuilder()
+                .disableHtmlEscaping()
+                .setFieldNamingStrategy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+                .setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
+                .create()
+                ;
+    }
 
 
     /**
