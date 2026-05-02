@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Authlete, Inc.
+ * Copyright (C) 2023-2026 Authlete, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -256,7 +256,6 @@ public class SDObjectDecoder
     }
 
 
-    @SuppressWarnings("unchecked")
     private void decodeMapEntry(
             Map<String, Disclosure> digestMap,
             String key, Object value, Map<String, Object> decodedMap)
@@ -276,21 +275,34 @@ public class SDObjectDecoder
             return;
         }
 
+        // Decode the value recursively if needed.
+        value = decodeValue(digestMap, value);
+
+        // Add the decoded key-value pair.
+        decodedMap.put(key, value);
+    }
+
+
+    @SuppressWarnings("unchecked")
+    private Object decodeValue(Map<String, Disclosure> digestMap, Object value)
+    {
         // If the value is a map.
         if (value instanceof Map)
         {
             // Decode the nested map.
-            value = decodeMap(digestMap, (Map<String, Object>)value);
+            return decodeMap(digestMap, (Map<String, Object>)value);
         }
         // If the value is a list.
         else if (value instanceof List)
         {
             // Decode the list.
-            value = decodeList(digestMap, (List<?>)value);
+            return decodeList(digestMap, (List<?>)value);
         }
-
-        // Add the decoded key-value pair.
-        decodedMap.put(key, value);
+        else
+        {
+            // No decoding.
+            return value;
+        }
     }
 
 
@@ -338,7 +350,6 @@ public class SDObjectDecoder
     }
 
 
-    @SuppressWarnings("unchecked")
     private void decodeSDElement(
             Map<String, Disclosure> digestMap,
             String digest, Map<String, Object> decodedMap)
@@ -371,18 +382,8 @@ public class SDObjectDecoder
                     "The digest of a disclosure for an array element is found in the '_sd' array.");
         }
 
-        // If the value is a map.
-        if (claimValue instanceof Map)
-        {
-            // Decode the nested map.
-            claimValue = decodeMap(digestMap, (Map<String, Object>)claimValue);
-        }
-        // If the value is a list.
-        else if (claimValue instanceof List)
-        {
-            // Decode the list.
-            claimValue = decodeList(digestMap, (List<?>)claimValue);
-        }
+        // Decode the value recursively if needed.
+        claimValue = decodeValue(digestMap, claimValue);
 
         // Add the disclosed key-value pair.
         decodedMap.put(claimName, claimValue);
@@ -504,7 +505,10 @@ public class SDObjectDecoder
                     "The digest of a disclosure for an object property is specified by '...'.");
         }
 
+        // Decode the value recursively if needed.
+        Object claimValue = decodeValue(digestMap, disclosure.getClaimValue());
+
         // Add the disclosed array element.
-        decodedList.add(disclosure.getClaimValue());
+        decodedList.add(claimValue);
     }
 }

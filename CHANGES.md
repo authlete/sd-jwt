@@ -1,6 +1,15 @@
 CHANGES
 =======
 
+- `SDObjectDecoder` class
+  - bugfix: Results of decoded array elements should also be processed
+    recursively. This issue was reported by Issue #8 and fixed by PR #9.
+
+- `SDObjectEncoder` class
+  - Added `noDecoy()` method.
+  - Added `encode(Map<String, Object>, boolean)` method.
+  - Added `encode(List<?>, boolean)` method.
+
 1.8 (2026-03-23)
 ----------------
 

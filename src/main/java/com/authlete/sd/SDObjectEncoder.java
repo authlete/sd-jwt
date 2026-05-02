@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Authlete, Inc.
+ * Copyright (C) 2023-2026 Authlete, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -351,6 +351,22 @@ public class SDObjectEncoder
 
 
     /**
+     * Suppress decoy generation. This method is an alias of
+     * {@link #setDecoyMagnification(double, double) setDecoyMagnification}{@code
+     * (0.0, 0.0)}.
+     *
+     * @return
+     *         {@code this} object.
+     *
+     * @since 1.9
+     */
+    public SDObjectEncoder noDecoy()
+    {
+        return setDecoyMagnification(0.0, 0.0);
+    }
+
+
+    /**
      * Get the flag indicating whether the "{@code _sd_alg}" key (that denotes
      * the hash algorithm for digests) will be included in the encoded map.
      *
@@ -463,6 +479,11 @@ public class SDObjectEncoder
      * (false)} before calling this method.
      * </p>
      *
+     * <p>
+     * This method is an alias of {@link #encode(Map, boolean) encode}{@code
+     * (input, true)}; the input is processed recursively.
+     * </p>
+     *
      * @param input
      *         The input map. If {@code null} is given, {@code null} is returned.
      *
@@ -470,6 +491,46 @@ public class SDObjectEncoder
      *         The encoded map.
      */
     public Map<String, Object> encode(Map<String, Object> input)
+    {
+        return encode(input, /* recursive */ true);
+    }
+
+
+    /**
+     * Encode the content of the given map.
+     *
+     * <p>
+     * On the entry of this method, the disclosure list returned from the
+     * {@link #getDisclosures()} method is reset. The "reset" here means that
+     * a new {@code List} instance is created and assigned, and the previous
+     * one (if any) is detached.
+     * </p>
+     *
+     * <p>
+     * Some claims such as "{@code iss}" and "{@code iat}" are retained without
+     * being made selectively-disclosable when they appear in the top-level map.
+     * See the description of the {@link #getRetainedClaims()} method for details.
+     * </p>
+     *
+     * <p>
+     * The encoded map will contain the "{@code _sd_alg}" key that denotes the
+     * hash algorithm for digests. If the key should not be included, call
+     * {@link #setHashAlgorithmIncluded(boolean) setHashAlgorithmIncluded}{@code
+     * (false)} before calling this method.
+     * </p>
+     *
+     * @param input
+     *         The input map. If {@code null} is given, {@code null} is returned.
+     *
+     * @param recursive
+     *         {@code true} to process the input recursively.
+     *
+     * @return
+     *         The encoded map.
+     *
+     * @since 1.9
+     */
+    public Map<String, Object> encode(Map<String, Object> input, boolean recursive)
     {
         reset();
 
@@ -479,7 +540,34 @@ public class SDObjectEncoder
         }
 
         // Encode the given map.
-        return encodeMap(input, /* top */ true);
+        return encodeMap(input, recursive, /* top */ true);
+    }
+
+
+    /**
+     * Encode the content of the given list.
+     *
+     * <p>
+     * On the entry of this method, the disclosure list returned from the
+     * {@link #getDisclosures()} method is reset. The "reset" here means that
+     * a new {@code List} instance is created and assigned, and the previous
+     * one (if any) is detached.
+     * </p>
+     *
+     * <p>
+     * This method is an alias of {@link #encode(List, boolean) encode}{@code
+     * (input, true)}; the input is processed recursively.
+     * </p>
+     *
+     * @param input
+     *         The input list. If {@code null} is given, {@code null} is returned.
+     *
+     * @return
+     *         The encoded list.
+     */
+    public List<Object> encode(List<?> input)
+    {
+        return encode(input, /* recursive */ true);
     }
 
 
@@ -496,10 +584,15 @@ public class SDObjectEncoder
      * @param input
      *         The input list. If {@code null} is given, {@code null} is returned.
      *
+     * @param recursive
+     *         {@code true} to process the input recursively.
+     *
      * @return
      *         The encoded list.
+     *
+     * @since 1.9
      */
-    public List<Object> encode(List<?> input)
+    public List<Object> encode(List<?> input, boolean recursive)
     {
         reset();
 
@@ -509,7 +602,7 @@ public class SDObjectEncoder
         }
 
         // Encode the given list.
-        return encodeList(input);
+        return encodeList(input, recursive);
     }
 
 
@@ -520,14 +613,15 @@ public class SDObjectEncoder
     }
 
 
-    private Map<String, Object> encodeMap(Map<String, Object> input)
+    private Map<String, Object> encodeMap(Map<String, Object> input, boolean recursive)
     {
-        return encodeMap(input, /* top */ false);
+        return encodeMap(input, recursive, /* top */ false);
     }
 
 
     @SuppressWarnings("unchecked")
-    private Map<String, Object> encodeMap(Map<String, Object> input, boolean top)
+    private Map<String, Object> encodeMap(
+            Map<String, Object> input, boolean recursive, boolean top)
     {
         SDObjectBuilder builder = new SDObjectBuilder(getHashAlgorithm());
 
@@ -544,16 +638,16 @@ public class SDObjectEncoder
                 // Add the claim without making it selectively-disclosable.
                 builder.putClaim(key, value);
             }
-            else if (value instanceof Map)
+            else if (value instanceof Map && recursive)
             {
                 // Encode the sub map.
-                value = encodeMap((Map<String, Object>)value);
+                value = encodeMap((Map<String, Object>)value, recursive);
                 builder.putClaim(key, value);
             }
-            else if (value instanceof List)
+            else if (value instanceof List && recursive)
             {
                 // Encode the list.
-                value = encodeList((List<?>)value);
+                value = encodeList((List<?>)value, recursive);
                 builder.putClaim(key, value);
             }
             else
@@ -578,7 +672,7 @@ public class SDObjectEncoder
 
 
     @SuppressWarnings("unchecked")
-    private List<Object> encodeList(List<?> input)
+    private List<Object> encodeList(List<?> input, boolean recursive)
     {
         // The size of the input list.
         int inputSize = input.size();
@@ -592,15 +686,15 @@ public class SDObjectEncoder
         // For each element in the input list.
         for (Object value : input)
         {
-            if (value instanceof Map)
+            if (value instanceof Map && recursive)
             {
                 // Encode the sub map.
-                value = encodeMap((Map<String, Object>)value);
+                value = encodeMap((Map<String, Object>)value, recursive);
             }
-            else if (value instanceof List)
+            else if (value instanceof List && recursive)
             {
                 // Encode the sub list.
-                value = encodeList((List<?>)value);
+                value = encodeList((List<?>)value, recursive);
             }
             else
             {
