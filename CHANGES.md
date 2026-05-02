@@ -1,6 +1,9 @@
 CHANGES
 =======
 
+1.9 (2026-05-02)
+----------------
+
 - `SDObjectDecoder` class
   - bugfix: Results of decoded array elements should also be processed
     recursively. This issue was reported by Issue #8 and fixed by PR #9.
