@@ -9,7 +9,7 @@ CHANGES
 - `SDObjectDecoder` class
   - bugfix: When a disclosure's claim name is `_sd` or `...`, and its
     digest is listed in an `_sd` array, decoding with that disclosure
-    should report an error (RFC 9901, Section 7.1(3)(c)(ii)(2)). PR #11
+    should report an error (RFC 9901, Section 7.1(3)(c)(ii)(2)). PR #12
 
 1.9 (2026-05-02)
 ----------------
