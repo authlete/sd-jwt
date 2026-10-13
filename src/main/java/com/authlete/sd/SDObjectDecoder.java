@@ -275,6 +275,18 @@ public class SDObjectDecoder
             return;
         }
 
+        // RFC 9901, Section 7.1 (3)(c)(ii)(3)
+        //
+        //   If the claim name already exists at the level of the _sd key,
+        //   the SD-JWT MUST be rejected.
+        //
+        if (decodedMap.containsKey(key))
+        {
+            throw new IllegalArgumentException(String.format(
+                    "The claim name '%s' conflicts with the claim name in a " +
+                    "disclosure (RFC 9901, Section 7.1 (3)(c)(ii)(3)).", key));
+        }
+
         // Decode the value recursively if needed.
         value = decodeValue(digestMap, value);
 
@@ -391,6 +403,20 @@ public class SDObjectDecoder
             throw new IllegalArgumentException(String.format(
                     "The claim name in the disclosure (digest = %s) is '%s', " +
                     "which is not allowed (RFC 9901, Section 7.1 (3)(c)(ii)(2)).",
+                    disclosure.digest(), claimName));
+        }
+
+        // RFC 9901, Section 7.1 (3)(c)(ii)(3)
+        //
+        //   If the claim name already exists at the level of the _sd key,
+        //   the SD-JWT MUST be rejected.
+        //
+        if (decodedMap.containsKey(claimName))
+        {
+            throw new IllegalArgumentException(String.format(
+                    "The claim name in the disclosure (digest = %s) is '%s', " +
+                    "which already exists in the decoded map (RFC 9901, " +
+                    "Section 7.1 (3)(c)(ii)(3)).",
                     disclosure.digest(), claimName));
         }
 
