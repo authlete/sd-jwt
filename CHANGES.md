@@ -10,6 +10,8 @@ CHANGES
   - bugfix: When a disclosure's claim name is `_sd` or `...`, and its
     digest is listed in an `_sd` array, decoding with that disclosure
     should report an error (RFC 9901, Section 7.1(3)(c)(ii)(2)). PR #12
+  - bugfix: Claim names extracted from disclosures should not conflict
+    (RFC 9901, Section 7.1(3)(c)(ii)(3)).
 
 1.9 (2026-05-02)
 ----------------

@@ -625,4 +625,91 @@ public final class SDObjectDecoderTest
             new SDObjectDecoder().decode(encodedMap, disclosures);
         });
     }
+
+
+    @Test
+    public void test_rfc9901_7_1_3_c_ii_3_pattern1()
+    {
+        // The common key that we intentionally make conflict.
+        String key   = "conflicting_key";
+        String value = "value";
+
+        // RFC 9901, Section 7.1 (3)(c)(ii)(3)
+        //
+        //   If the claim name already exists at the level of the _sd key,
+        //   the SD-JWT MUST be rejected.
+
+        // Create a disclosure whose claim name will conflict later.
+        Disclosure disclosure = new Disclosure(key, value);
+
+        // The digest value of the disclosure.
+        String digest = disclosure.digest();
+
+        // Manually craft an encoded map.
+        //
+        //   {
+        //     "_sd": [
+        //       <digest>
+        //     ],
+        //     <key>: <value>
+        //   }
+        //
+        Map<String, Object> encodedMap = mapOf(
+                "_sd", listOf(digest),
+                key,   value
+        );
+
+        // The list of disclosures used to decode the encoded map.
+        List<Disclosure> disclosures = listOf(disclosure);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            // The decoder should report an error indicating that the disclosure's
+            // claim name conflicts with an existing key.
+            new SDObjectDecoder().decode(encodedMap, disclosures);
+        });
+    }
+
+
+    @Test
+    public void test_rfc9901_7_1_3_c_ii_3_pattern2()
+    {
+        // The common key that we intentionally make conflict.
+        String key   = "conflicting_key";
+        String value = "value";
+
+        // RFC 9901, Section 7.1 (3)(c)(ii)(3)
+        //
+        //   If the claim name already exists at the level of the _sd key,
+        //   the SD-JWT MUST be rejected.
+
+        // Create disclosures whose claim names conflict.
+        Disclosure disclosure1 = new Disclosure(key, value);
+        Disclosure disclosure2 = new Disclosure(key, value);
+
+        // The digest values of the disclosures.
+        String digest1 = disclosure1.digest();
+        String digest2 = disclosure2.digest();
+
+        // Manually craft an encoded map.
+        //
+        //   {
+        //     "_sd": [
+        //       <digest1>,
+        //       <digest2>
+        //     ]
+        //   }
+        //
+        Map<String, Object> encodedMap = mapOf(
+                "_sd", listOf(digest1, digest2)
+        );
+
+        // The list of disclosures used to decode the encoded map.
+        List<Disclosure> disclosures = listOf(disclosure1, disclosure2);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            // The decoder should report an error indicating that the disclosures'
+            // claim names conflict.
+            new SDObjectDecoder().decode(encodedMap, disclosures);
+        });
+    }
 }
