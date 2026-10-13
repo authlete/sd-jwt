@@ -105,8 +105,8 @@ public class SDObjectDecoder
 
         // Create mappings from a disclosure digest to a disclosure.
         // The digest is computed using the hash algorithm.
-        Map<String, Disclosure> digestMap =
-                createDigestMap(hashAlgorithm, disclosures);
+        DigestDisclosureMap digestMap =
+                DigestDisclosureMap.create(hashAlgorithm, disclosures);
 
         // Decode the encoded map.
         return decodeMap(digestMap, encodedMap);
@@ -169,8 +169,8 @@ public class SDObjectDecoder
 
         // Create mappings from a disclosure digest to a disclosure.
         // The digest is computed using the hash algorithm.
-        Map<String, Disclosure> digestMap =
-                createDigestMap(hashAlgorithm, disclosures);
+        DigestDisclosureMap digestMap =
+                DigestDisclosureMap.create(hashAlgorithm, disclosures);
 
         // Decode the encoded list.
         return decodeList(digestMap, encodedList);
@@ -201,42 +201,8 @@ public class SDObjectDecoder
     }
 
 
-    private static Map<String, Disclosure> createDigestMap(
-            String hashAlgorithm, Collection<Disclosure> disclosures)
-    {
-        // Mappings from a disclosure digest to a disclosure.
-        Map<String, Disclosure> map = new LinkedHashMap<>();
-
-        if (disclosures == null)
-        {
-            // Return an empty map.
-            return map;
-        }
-
-        // For each disclosure.
-        for (Disclosure disclosure : disclosures)
-        {
-            if (disclosure == null)
-            {
-                // Ignore.
-                continue;
-            }
-
-            // Compute the digest of the disclosure with the hash algorithm.
-            // The digest is used as a key.
-            String key = disclosure.digest(hashAlgorithm);
-
-            // Add a mapping from the disclosure digest to the disclosure.
-            map.put(key, disclosure);
-        }
-
-        // Mappings from a disclosure digest to a disclosure.
-        return map;
-    }
-
-
     private Map<String, Object> decodeMap(
-            Map<String, Disclosure> digestMap, Map<String, Object> encodedMap)
+            DigestDisclosureMap digestMap, Map<String, Object> encodedMap)
     {
         // A map that holds decoded key-value pairs.
         Map<String, Object> decodedMap = new LinkedHashMap<>();
@@ -257,7 +223,7 @@ public class SDObjectDecoder
 
 
     private void decodeMapEntry(
-            Map<String, Disclosure> digestMap,
+            DigestDisclosureMap digestMap,
             String key, Object value, Map<String, Object> decodedMap)
     {
         // If the key is "_sd_alg".
@@ -296,7 +262,7 @@ public class SDObjectDecoder
 
 
     @SuppressWarnings("unchecked")
-    private Object decodeValue(Map<String, Disclosure> digestMap, Object value)
+    private Object decodeValue(DigestDisclosureMap digestMap, Object value)
     {
         // If the value is a map.
         if (value instanceof Map)
@@ -319,7 +285,7 @@ public class SDObjectDecoder
 
 
     private void decodeSD(
-            Map<String, Disclosure> digestMap,
+            DigestDisclosureMap digestMap,
             Object sd, Map<String, Object> decodedMap)
     {
         // If the value of "_sd" is null.
@@ -363,11 +329,11 @@ public class SDObjectDecoder
 
 
     private void decodeSDElement(
-            Map<String, Disclosure> digestMap,
+            DigestDisclosureMap digestMap,
             String digest, Map<String, Object> decodedMap)
     {
         // Get a disclosure that corresponds to the digest.
-        Disclosure disclosure = digestMap.get(digest);
+        Disclosure disclosure = digestMap.reference(digest);
 
         // If the disclosure that corresponds to the digest is not found.
         if (disclosure == null)
@@ -429,7 +395,7 @@ public class SDObjectDecoder
 
 
     private List<Object> decodeList(
-            Map<String, Disclosure> digestMap, List<?> encodedList)
+            DigestDisclosureMap digestMap, List<?> encodedList)
     {
         // A list that holds decoded elements.
         List<Object> decodedList = new ArrayList<>();
@@ -448,7 +414,7 @@ public class SDObjectDecoder
 
     @SuppressWarnings("unchecked")
     private void decodeListElement(
-            Map<String, Disclosure> digestMap,
+            DigestDisclosureMap digestMap,
             Object element, List<Object> decodedList)
     {
         if (element instanceof Map)
@@ -480,7 +446,7 @@ public class SDObjectDecoder
 
 
     private void decodeListElementMap(
-            Map<String, Disclosure> digestMap,
+            DigestDisclosureMap digestMap,
             Map<String, Object> element, List<Object> decodedList)
     {
         // If the map contains other keys than "...".
@@ -516,11 +482,11 @@ public class SDObjectDecoder
 
 
     private void decodeDots(
-            Map<String, Disclosure> digestMap,
+            DigestDisclosureMap digestMap,
             String digest, List<Object> decodedList)
     {
         // Get a disclosure that corresponds to the digest.
-        Disclosure disclosure = digestMap.get(digest);
+        Disclosure disclosure = digestMap.reference(digest);
 
         // If the disclosure that corresponds to the digest is not found.
         if (disclosure == null)

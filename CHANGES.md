@@ -12,6 +12,8 @@ CHANGES
     should report an error (RFC 9901, Section 7.1(3)(c)(ii)(2)). PR #12
   - bugfix: Claim names extracted from disclosures should not conflict
     (RFC 9901, Section 7.1(3)(c)(ii)(3)). PR #13
+  - bugfix: Multiple references to the same disclosure digest should be
+    prohibited (RFC 9901, Section 7.1(4)). PR #14
 
 1.9 (2026-05-02)
 ----------------

@@ -712,4 +712,62 @@ public final class SDObjectDecoderTest
             new SDObjectDecoder().decode(encodedMap, disclosures);
         });
     }
+
+
+    @Test
+    public void test_rfc9901_7_1_4()
+    {
+        // RFC 9901, Section 7.1 (4)
+        //
+        //   If any digest value is encountered more than once in the
+        //   Issuer-signed JWT payload (directly or recursively via other
+        //   Disclosures), the SD-JWT MUST be rejected.
+
+        // Create a disclosure whose digest will be referenced multiple times.
+        Disclosure disclosure = new Disclosure("claim_key", "claim_value");
+
+        // The digest value of the disclosure.
+        String digest = disclosure.digest();
+
+        // Manually craft an encoded map.
+        //
+        //   {
+        //     "_sd": [
+        //       <digest>
+        //     ],
+        //     "key": {
+        //       "_sd": [
+        //         <digest>
+        //       ]
+        //     }
+        //   }
+        //
+        // This map intends to be decoded into the following:
+        //
+        //   {
+        //     "claim_key": "claim_value",
+        //     "key": {
+        //       "claim_key": "claim_value"
+        //     }
+        //   }
+        //
+        // However, this decoding should fail due to the requirement of
+        // Section 7.1 (4).
+        //
+        Map<String, Object> encodedMap = mapOf(
+                "_sd", listOf(digest),
+                "key", mapOf(
+                  "_sd", listOf(digest)
+                )
+        );
+
+        // The list of disclosures used to decode the encoded map.
+        List<Disclosure> disclosures = listOf(disclosure);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            // The decoder should report an error indicating that the same
+            // digest value is encountered more than once.
+            new SDObjectDecoder().decode(encodedMap, disclosures);
+        });
+    }
 }
