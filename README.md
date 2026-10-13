@@ -2,7 +2,8 @@
 
 ## Overview
 
-This is a Java library for the "**Selective Disclosure for JWTs (SD-JWT)**"
+This is a Java library for the
+"**[RFC 9901][RFC_9901] Selective Disclosure for JSON Web Tokens**"
 specification. The following features are provided.
 
 - Create a Disclosure.
@@ -759,7 +760,7 @@ For more details, please refer to the implementations of the `createVC`,
 
 ## References
 
-- SD-JWT Datatracker: https://datatracker.ietf.org/doc/draft-ietf-oauth-selective-disclosure-jwt/
+- SD-JWT Datatracker: https://datatracker.ietf.org/doc/rfc9901/
 - SD-JWT GitHub: https://github.com/oauth-wg/oauth-selective-disclosure-jwt
 
 ## Contact
@@ -768,3 +769,4 @@ Authlete Contact Form: https://www.authlete.com/contact/
 
 [HASH_ALGORITHM_REGISTRY]: https://www.iana.org/assignments/named-information/named-information.xhtml#hash-alg
 [NIMBUS_JOSE_JWT]: https://connect2id.com/products/nimbus-jose-jwt
+[RFC_9901]: https://www.rfc-editor.org/info/rfc9901/
