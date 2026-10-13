@@ -6,6 +6,9 @@ CHANGES
     `null` rather than throwing a `NullPointerException`. This issue was
     reported and fixed in PR #10.
 
+- `SDObjectBuilder` class
+  - Added `putSDClaims(Collection<Disclosure>)` method. PR #16
+
 - `SDObjectDecoder` class
   - bugfix: When a disclosure's claim name is `_sd` or `...`, and its
     digest is listed in an `_sd` array, decoding with that disclosure

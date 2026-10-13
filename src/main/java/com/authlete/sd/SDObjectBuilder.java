@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2024 Authlete, Inc.
+ * Copyright (C) 2023-2026 Authlete, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import static com.authlete.sd.SDConstants.DEFAULT_HASH_ALGORITHM;
 import static com.authlete.sd.SDConstants.KEY_SD;
 import static com.authlete.sd.SDConstants.KEY_SD_ALG;
 import static com.authlete.sd.SDUtility.isReservedKey;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -261,6 +263,48 @@ public class SDObjectBuilder
     public Disclosure putSDClaim(String salt, String claimName, Object claimValue)
     {
         return putSDClaim(new Disclosure(salt, claimName, claimValue));
+    }
+
+
+    /**
+     * Add the digests of the specified disclosures.
+     *
+     * @param disclosures
+     *         Disclosures whose digest values to be added. If {@code null}
+     *         is passed, an empty list is returned.
+     *
+     * @return
+     *        A list of disclosures whose digest values were added. If
+     *        {@code null} is passed, an empty list is returned. Any
+     *        {@code null} elements in the input collection are skipped and
+     *        excluded from the returned list.
+     *
+     * @since 1.10
+     */
+    public List<Disclosure> putSDClaims(Collection<Disclosure> disclosures)
+    {
+        List<Disclosure> list = new ArrayList<>();
+
+        if (disclosures == null)
+        {
+            // Return an empty list.
+            return list;
+        }
+
+        for (Disclosure disclosure : disclosures)
+        {
+            if (disclosure == null)
+            {
+                continue;
+            }
+
+            putSDClaim(disclosure);
+
+            list.add(disclosure);
+        }
+
+        // A list of disclosures whose digest values have been added actually.
+        return list;
     }
 
 
