@@ -1,6 +1,9 @@
 CHANGES
 =======
 
+1.10 (2026-10-13)
+-----------------
+
 - `Disclosure` class
   - bugfix: The `equals(Object)` method should return `false` when passed
     `null` rather than throwing a `NullPointerException`. This issue was
