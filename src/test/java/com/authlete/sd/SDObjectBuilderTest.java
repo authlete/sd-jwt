@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Authlete, Inc.
+ * Copyright (C) 2023-2026 Authlete, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package com.authlete.sd;
 
 
+import static com.authlete.sd.CollectionUtility.listOf;
 import static com.authlete.sd.SDConstants.KEY_SD;
 import static com.authlete.sd.SDConstants.KEY_SD_ALG;
 import static org.junit.Assert.assertEquals;
@@ -242,5 +243,36 @@ public final class SDObjectBuilderTest
         // The length of the base64url-encoded digest value computed with
         // "sha-512" should be 86.
         assertEquals(86, digest.length());
+    }
+
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void test_07_sd_claims()
+    {
+        List<Disclosure> inputDisclosures = listOf(
+                new Disclosure("claimName1", "claimValue1"),
+                null,
+                new Disclosure("claimName2", "claimValue2"),
+                null,
+                new Disclosure("claimName3", "claimValue3")
+        );
+
+        SDObjectBuilder builder = new SDObjectBuilder();
+
+        // Put multiple disclosures at a time.
+        List<Disclosure> outputDisclosures = builder.putSDClaims(inputDisclosures);
+
+        // null elements in the input list should have been skipped and excluded.
+        assertEquals(3, outputDisclosures.size());
+
+        // Build a map.
+        Map<String, Object> map = builder.build();
+
+        // The _sd array.
+        List<String> digestList = (List<String>)map.get(KEY_SD);
+
+        // The size of the _sd array should be 3.
+        assertEquals(3, digestList.size());
     }
 }
