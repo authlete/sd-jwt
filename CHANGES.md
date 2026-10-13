@@ -1,6 +1,11 @@
 CHANGES
 =======
 
+- `Disclosure` class
+  - bugfix: The `equals(Object)` method should return `false` when passed
+    `null` rather than throwing a `NullPointerException`. This issue was
+    reported and fixed in PR #10.
+
 1.9 (2026-05-02)
 ----------------
 
