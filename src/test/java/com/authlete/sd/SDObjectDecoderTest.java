@@ -770,4 +770,46 @@ public final class SDObjectDecoderTest
             new SDObjectDecoder().decode(encodedMap, disclosures);
         });
     }
+
+
+    @Test
+    public void test_rfc9901_7_1_5()
+    {
+        // RFC 9901, Section 7.1 (5)
+        //
+        //   If any Disclosure was not referenced by digest value in the
+        //   Issuer-signed JWT (directly or recursively via other Disclosures),
+        //   the SD-JWT MUST be rejected.
+
+        // Create disclosures.
+        Disclosure disclosure1 = new Disclosure("claim1", "value1");
+        Disclosure disclosure2 = new Disclosure("claim2", "value2");
+
+        // The digest value of the first disclosure.
+        String digest1 = disclosure1.digest();
+
+        // Manually craft an encoded map.
+        //
+        //   {
+        //     "_sd": [
+        //       <digest1>
+        //     ]
+        //   }
+        //
+        // Note that only the digest value of the first disclosure is referenced
+        // and that that of the second disclosure is not referenced.
+        Map<String, Object> encodedMap = mapOf("_sd", listOf(digest1));
+
+        // The list of disclosures used to decode the encoded map.
+        //
+        // Note that the second disclosure is included although its digest
+        // value is not referenced.
+        List<Disclosure> disclosures = listOf(disclosure1, disclosure2);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            // The decoder should report an error indicating that some
+            // disclosures have digest values that are not referenced.
+            new SDObjectDecoder().decode(encodedMap, disclosures);
+        });
+    }
 }

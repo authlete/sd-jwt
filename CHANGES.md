@@ -14,6 +14,8 @@ CHANGES
     (RFC 9901, Section 7.1(3)(c)(ii)(3)). PR #13
   - bugfix: Multiple references to the same disclosure digest should be
     prohibited (RFC 9901, Section 7.1(4)). PR #14
+  - bugfix: SD-JWTs with unreferenced disclosures should be rejected
+    (RFC 9901, Section 7.1(5)). Reported in Issue #11 and fixed in PR #15.
 
 1.9 (2026-05-02)
 ----------------
