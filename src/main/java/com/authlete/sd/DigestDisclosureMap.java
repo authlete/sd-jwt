@@ -19,7 +19,9 @@ package com.authlete.sd;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 final class DigestDisclosureMap extends LinkedHashMap<String, Disclosure>
@@ -93,5 +95,13 @@ final class DigestDisclosureMap extends LinkedHashMap<String, Disclosure>
 
         // Get the disclosure corresponding to the digest.
         return get(digest);
+    }
+
+
+    public List<Disclosure> getUnreferencedDisclosures()
+    {
+        return values().stream()
+                .filter(disclosure -> !referencedDigests.contains(disclosure.digest()))
+                .collect(Collectors.toList());
     }
 }

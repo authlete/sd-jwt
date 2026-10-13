@@ -109,7 +109,12 @@ public class SDObjectDecoder
                 DigestDisclosureMap.create(hashAlgorithm, disclosures);
 
         // Decode the encoded map.
-        return decodeMap(digestMap, encodedMap);
+        Map<String, Object> decodedMap = decodeMap(digestMap, encodedMap);
+
+        // Make sure that all specified disclosures have been referenced.
+        checkUnreferencedDisclosures(digestMap);
+
+        return decodedMap;
     }
 
 
@@ -173,7 +178,12 @@ public class SDObjectDecoder
                 DigestDisclosureMap.create(hashAlgorithm, disclosures);
 
         // Decode the encoded list.
-        return decodeList(digestMap, encodedList);
+        List<Object> decodedList = decodeList(digestMap, encodedList);
+
+        // Make sure that all specified disclosures have been referenced.
+        checkUnreferencedDisclosures(digestMap);
+
+        return decodedList;
     }
 
 
@@ -198,6 +208,34 @@ public class SDObjectDecoder
 
         // The hash algorithm specified by "_sd_alg".
         return (String)alg;
+    }
+
+
+    private static void checkUnreferencedDisclosures(DigestDisclosureMap digestMap)
+    {
+        // RFC 9901, Section 7.1 (5)
+        //
+        //   If any Disclosure was not referenced by digest value in the
+        //   Issuer-signed JWT (directly or recursively via other Disclosures),
+        //   the SD-JWT MUST be rejected.
+
+        // Get unreferenced disclosures.
+        List<Disclosure> unreferenced = digestMap.getUnreferencedDisclosures();
+
+        // The number of unreferenced disclosures.
+        int count = unreferenced.size();
+
+        // If all disclosures have been referenced.
+        if (count == 0)
+        {
+            // OK.
+            return;
+        }
+
+        // At least one disclosure has not been referenced.
+        throw new IllegalArgumentException(String.format(
+                "The disclosure with digest '%s' is not referenced (RFC 9901, Section 7.1 (5)).",
+                unreferenced.get(0).digest()));
     }
 
 
