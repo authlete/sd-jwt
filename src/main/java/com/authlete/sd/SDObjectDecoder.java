@@ -382,6 +382,18 @@ public class SDObjectDecoder
                     "The digest of a disclosure for an array element is found in the '_sd' array.");
         }
 
+        // RFC 9901, Section 7.1 (3)(c)(ii)(2)
+        //
+        //   If the claim name is _sd or ..., the SD-JWT MUST be rejected.
+        //
+        if (claimName.equals(KEY_SD) || claimName.equals(KEY_THREE_DOTS))
+        {
+            throw new IllegalArgumentException(String.format(
+                    "The claim name in the disclosure (digest = %s) is '%s', " +
+                    "which is not allowed (RFC 9901, Section 7.1 (3)(c)(ii)(2)).",
+                    disclosure.digest(), claimName));
+        }
+
         // Decode the value recursively if needed.
         claimValue = decodeValue(digestMap, claimValue);
 

@@ -19,6 +19,7 @@ package com.authlete.sd;
 import static com.authlete.sd.CollectionUtility.listOf;
 import static com.authlete.sd.CollectionUtility.mapOf;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import java.text.ParseException;
@@ -547,5 +548,81 @@ public final class SDObjectDecoderTest
 
             return null;
         }
+    }
+
+
+    @Test
+    public void test_rfc9901_7_1_3_c_ii_2_sd()
+    {
+        // RFC 9901, Section 7.1 (3)(c)(ii)(2)
+        //
+        //   If the claim name is _sd or ..., the SD-JWT MUST be rejected.
+
+        // Create a disclosure whose claim name is "_sd". This disclosure should
+        // be considered invalid.
+        //
+        // Note that the current implementation of the Disclosure constructor
+        // does not reject "_sd" as a claim name.
+        Disclosure disclosureSd = new Disclosure("_sd", "_sd_value");
+
+        // The digest value of the disclosure.
+        String digestSd = disclosureSd.digest();
+
+        // Manually craft an encoded map.
+        //
+        //   {
+        //     "_sd": [
+        //       <digestSd>
+        //     ]
+        //   }
+        //
+        Map<String, Object> encodedMap = mapOf("_sd", listOf(digestSd));
+
+        // The list of disclosures used to decode the encoded map.
+        List<Disclosure> disclosures = listOf(disclosureSd);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            // The decoder should report an error indicating that the disclosure's
+            // claim name is "_sd", which is not allowed.
+            new SDObjectDecoder().decode(encodedMap, disclosures);
+        });
+    }
+
+
+    @Test
+    public void test_rfc9901_7_1_3_c_ii_2_dots()
+    {
+        // RFC 9901, Section 7.1 (3)(c)(ii)(2)
+        //
+        //   If the claim name is _sd or ..., the SD-JWT MUST be rejected.
+
+        // Create a disclosure whose claim name is "...". This disclosure should
+        // be considered invalid.
+        //
+        // Note that the current implementation of the Disclosure constructor
+        // does not reject "..." as a claim name.
+        Disclosure disclosureDots = new Disclosure("...", "dots_value");
+
+        // The digest value of the disclosure.
+        String digestDots = disclosureDots.digest();
+
+        // Manually craft an encoded map.
+        //
+        //   {
+        //     "_sd": [
+        //       <digestDots>
+        //     ]
+        //   }
+        //
+        Map<String, Object> encodedMap = mapOf("_sd", listOf(digestDots));
+
+        // The list of disclosures used to decode the encoded map.
+        List<Disclosure> disclosures = listOf(disclosureDots);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            // The decoder should report an error indicating that the disclosure's
+            // claim name is "...", which is not allowed.
+            new SDObjectDecoder().decode(encodedMap, disclosures);
+        });
     }
 }
