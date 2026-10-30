@@ -844,6 +844,14 @@ public final class SDObjectDecoderTest
                     new SDObjectDecoder().decode(encodedMap, listOf(disclosure));
 
             assertEquals(hashAlgorithm, "value1", decodedMap.get("claim1"));
+
+            // A disclosure whose digest is not referenced must still be
+            // rejected under the same hash algorithm.
+            Disclosure unreferenced = new Disclosure("claim2", "value2");
+
+            assertThrows(hashAlgorithm, IllegalArgumentException.class, () -> {
+                new SDObjectDecoder().decode(encodedMap, listOf(disclosure, unreferenced));
+            });
         }
     }
 }
