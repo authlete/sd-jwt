@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -100,8 +101,11 @@ final class DigestDisclosureMap extends LinkedHashMap<String, Disclosure>
 
     public List<Disclosure> getUnreferencedDisclosures()
     {
-        return values().stream()
-                .filter(disclosure -> !referencedDigests.contains(disclosure.digest()))
+        // The keys are the digests computed with the hash algorithm given
+        // to create(), so compare them, not the default-algorithm digests.
+        return entrySet().stream()
+                .filter(entry -> !referencedDigests.contains(entry.getKey()))
+                .map(Map.Entry::getValue)
                 .collect(Collectors.toList());
     }
 }

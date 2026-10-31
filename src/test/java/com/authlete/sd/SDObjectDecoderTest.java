@@ -812,4 +812,46 @@ public final class SDObjectDecoderTest
             new SDObjectDecoder().decode(encodedMap, disclosures);
         });
     }
+
+
+    @Test
+    public void test_rfc9901_7_1_5_sd_alg()
+    {
+        // RFC 9901, Section 7.1 (5), with "_sd_alg" other than "sha-256".
+        //
+        // A disclosure referenced by its digest under the hash algorithm
+        // that "_sd_alg" names is referenced, so decoding must succeed.
+
+        for (String hashAlgorithm : new String[] { "sha-256", "sha-384", "sha-512" })
+        {
+            Disclosure disclosure = new Disclosure("claim1", "value1");
+
+            // Manually craft an encoded map.
+            //
+            //   {
+            //     "_sd_alg": <hashAlgorithm>,
+            //     "_sd": [
+            //       <digest under hashAlgorithm>
+            //     ]
+            //   }
+            //
+            Map<String, Object> encodedMap = mapOf(
+                    "_sd_alg", hashAlgorithm,
+                    "_sd", listOf(disclosure.digest(hashAlgorithm))
+            );
+
+            Map<String, Object> decodedMap =
+                    new SDObjectDecoder().decode(encodedMap, listOf(disclosure));
+
+            assertEquals(hashAlgorithm, "value1", decodedMap.get("claim1"));
+
+            // A disclosure whose digest is not referenced must still be
+            // rejected under the same hash algorithm.
+            Disclosure unreferenced = new Disclosure("claim2", "value2");
+
+            assertThrows(hashAlgorithm, IllegalArgumentException.class, () -> {
+                new SDObjectDecoder().decode(encodedMap, listOf(disclosure, unreferenced));
+            });
+        }
+    }
 }
