@@ -1,6 +1,13 @@
 CHANGES
 =======
 
+1.11 (2026-11-01)
+-----------------
+
+- `DigestDisclosureMap` class
+  - bugfix: The unreferenced-disclosure check should use the hash algorithm
+    of `_sd_alg`. Reported in Issue #17 and fixed in PR #18.
+
 1.10 (2026-10-13)
 -----------------
 
